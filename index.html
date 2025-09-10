@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>Neon Trader V7 — تداول ذكي وآمن</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet"/>
+  <link href="styles.css" rel="stylesheet"/>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo"><span class="icon"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polygon points="12 2 19 21 12 17 5 21 12 2"></polygon></svg></span></div>
+        Neon Trader <span class="badge">V7 — تداول ذكي وآمن</span>
+      </div>
+      <div class="actions">
+        <button class="iconbtn" id="powerBtn" title="تشغيل/إيقاف">
+          <span class="icon"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v10"></path><path d="M6.3 6.3a10 10 0 1 0 11.4 0"></path></svg></span>
+        </button>
+      </div>
+    </header>
+    <div class="main">
+      <aside class="sidebar">
+        <div class="profile">
+          <div class="avatar" id="avatar">MK</div>
+          <div>
+            <div class="name" id="userName">Mohammad</div>
+            <div class="tag">Neon Trader</div>
+          </div>
+        </div>
+        <ul class="menu" id="mainMenu">
+          <li class="item"><a class="active" data-view="home" href="#home" aria-label="الصفحة الرئيسية">
+            <span class="icon"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></span>
+            الصفحة الرئيسية</a></li>
+          <li class="item"><a data-view="platforms" href="#platforms" aria-label="المنصات">
+            <span class="icon"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"></path></svg></span>
+            المنصات</a></li>
+          <li class="item"><a data-view="assistant" href="#assistant" aria-label="المساعد الذكي">
+            <span class="icon"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect height="7" rx="2" width="18" x="3" y="11"></rect><circle cx="9" cy="9" r="2"></circle><circle cx="15" cy="9" r="2"></circle></svg></span>
+            المساعد</a></li>
+          <li class="item"><a data-view="settings" href="#settings" aria-label="الإعدادات">
+            <span class="icon"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33h-.01a1.65 1.65 0 0 0-1 1.51V22a2 2 0 1 1-4 0v-.07a1.65 1.65 0 0 0-1-1.51h-.01a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82v-.01a1.65 1.65 0 0 0-1.51-1z"></path></svg></span>
+            الإعدادات</a></li>
+        </ul>
+        <div class="push">
+          <ul class="menu">
+            <li class="item"><a href="#auth" id="authToggle" aria-label="تسجيل الدخول/الخروج">
+              <span class="icon" id="authIcon"><svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" x2="3" y1="12" y2="12"></line></svg></span>
+              <span class="label">تسجيل الخروج</span></a></li>
+          </ul>
+        </div>
+      </aside>
+      <main class="content">
+        <!-- الصفحة الرئيسية -->
+        <section id="view-home" class="view">
+          <div class="card">
+            <div class="hd">الأداء المالي</div>
+            <div class="bd">
+              <div class="row" style="justify-content:space-between; margin-bottom:16px">
+                <div>
+                  <div>الرصيد الكلي</div>
+                  <div style="font-size:24px; font-weight:900">$<span id="eq">0</span></div>
+                </div>
+                <div style="text-align:left">
+                  <div>الربح/الخسارة غير المحققة</div>
+                  <div style="font-size:18px;">$<span id="uPnL">0</span></div>
+                </div>
+              </div>
+              <div id="tickerStatus" style="color:var(--warn); font-size:14px; margin:8px 0">السوق: متوقف</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="hd">الأوامر المعلّقة <span class="badge" id="pendCount">0</span></div>
+            <div id="pendEmpty" class="empty">ما في أوامر معلّقة</div>
+            <table id="pendTbl">
+              <thead><tr>
+                <th>ID</th><th>الزوج</th><th>المنصة</th><th>الاتجاه</th><th>السعر</th><th>الكمية</th>
+                <th>وقف الخسارة</th><th>جني الربح</th><th>المتابعة</th><th>النوع</th><th></th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="hd">الصفقات المفتوحة <span class="badge" id="openCount">0</span></div>
+            <div id="openEmpty" class="empty">ما في صفقات مفتوحة</div>
+            <table id="openTbl">
+              <thead><tr>
+                <th>ID</th><th>الزوج</th><th>المنصة</th><th>الاتجاه</th><th>الرافعة</th><th>الكمية</th>
+                <th>سعر الدخول</th><th>السعر الحالي</th><th>PnL</th><th>ROI</th>
+                <th>وقف</th><th>جني</th><th>متابع</th><th></th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="hd">الصفقات المغلقة <span class="badge" id="closedCount">0</span></div>
+            <div id="closedEmpty" class="empty">ما في صفقات مغلقة</div>
+            <table id="closedTbl">
+              <thead><tr>
+                <th>ID</th><th>الزوج</th><th>المنصة</th><th>الاتجاه</th><th>الرافعة</th><th>الكمية</th>
+                <th>الدخول</th><th>الخروج</th><th>الرسوم</th><th>صافي</th><th>ROI</th><th>السبب</th><th>التاريخ</th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- المنصات -->
+        <section id="view-platforms" class="view" hidden>
+          <div class="card">
+            <div class="hd">المنصات المتصلة <span class="badge" id="exStats">...</span></div>
+            <div class="row" style="margin-bottom:12px">
+              <button class="btn" id="exAddBtn">+ إضافة منصة</button>
+              <button class="btn" id="exConnectAll">تشغيل الكل</button>
+              <button class="btn" id="exDisconnectAll">إيقاف الكل</button>
+            </div>
+            <div id="exEmpty" class="empty">ما في منصات مضافة</div>
+            <div id="exList"></div>
+          </div>
+        </section>
+
+        <!-- المساعد -->
+        <section id="view-assistant" class="view" hidden>
+          <!-- Daily Plan -->
+          <div id="assistant-plan">
+            <!-- JS-rendered -->
+          </div>
+
+          <!-- Opportunities -->
+          <div class="card">
+            <div class="hd">الفرص المتاحة</div>
+            <div id="assistant-opps" class="bd" style="display: flex; flex-direction: column; gap: 12px;">
+              <!-- JS-rendered -->
+            </div>
+          </div>
+
+          <!-- Action Log -->
+          <div class="card">
+            <div class="hd">
+              <span>سجل الإجراءات</span>
+              <button class="btn err" id="assistant-clear-log" style="font-size: 12px; padding: 6px 10px;">مسح السجل</button>
+            </div>
+            <div id="assistant-log" class="bd">
+              <!-- JS-rendered -->
+            </div>
+          </div>
+        </section>
+
+        <!-- الإعدادات -->
+        <section id="view-settings" class="view" hidden>
+          <div class="card">
+            <div class="hd">الإعدادات</div>
+            <div class="bd">
+              <p>جاري التطوير...</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Add Platform Picker Modal -->
+    <div class="picker-back" id="pickerBack" style="display:none">
+      <div aria-modal="true" class="picker-modal" role="dialog">
+        <div class="picker-hd">
+          <strong>اختيار منصة</strong>
+          <input class="input" id="pickerSearch" placeholder="ابحث عن منصة..." />
+        </div>
+        <div class="picker-grid" id="pickerGrid"></div>
+        <div class="picker-ft">
+          <button class="btn" id="pickerClose">إغلاق</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assistant Edit Modal -->
+    <div class="picker-back" id="assistant-edit-modal" style="display:none">
+      <div aria-modal="true" class="picker-modal" role="dialog" style="max-width: 500px;">
+        <div class="picker-hd">
+          <strong>تعديل الفرصة</strong>
+        </div>
+        <div class="bd" style="padding: 16px;">
+          <form id="assistant-edit-form">
+            <input type="hidden" id="edit-opp-id">
+            <div class="row" style="margin-bottom: 12px; justify-content: space-between;">
+              <label>الزوج: <strong id="edit-symbol"></strong></label>
+              <label>الاتجاه: <strong id="edit-side"></strong></label>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+              <label>سعر الدخول<input class="input" type="number" step="any" id="edit-entry" required></label>
+              <label>وقف الخسارة<input class="input" type="number" step="any" id="edit-stop" required></label>
+              <label>جني الربح<input class="input" type="number" step="any" id="edit-takeprofit" required></label>
+              <label>المخاطرة %<input class="input" type="number" step="any" id="edit-risk" required></label>
+            </div>
+            <div id="edit-error" style="color:var(--err); margin-bottom: 12px; display: none; text-align: center;"></div>
+            <div class="picker-ft">
+              <button type="button" class="btn warn" id="edit-cancel">إلغاء</button>
+              <button type="submit" class="btn">حفظ التعديلات</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script src="assistant.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
+
