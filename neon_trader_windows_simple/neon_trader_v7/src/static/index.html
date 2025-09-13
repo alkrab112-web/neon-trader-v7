@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Trader V7 - تطبيق التداول الذكي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="/manifest.json">
+</head>
+<body>
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", function() {
+                navigator.serviceWorker.register("/service-worker.js").then(function(registration) {
+                    console.log("ServiceWorker registration successful with scope: ", registration.scope);
+                }, function(err) {
+                    console.log("ServiceWorker registration failed: ", err);
+                });
+            });
+        }
+    </script>
+    <!-- شاشة تسجيل الدخول (معطلة) -->
+    <div id="loginScreen" class="screen login-container" style="display: none;"></div>
+
+    <!-- التطبيق الرئيسي -->
+    <div id="mainApp" class="screen active">
+        <!-- شريط التنقل العلوي -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fas fa-chart-line"></i>
+                <span>Neon Trader V7</span>
+            </div>
+            
+            <div class="nav-center">
+                <div class="daily-pnl" id="dailyPnL">
+                    <span class="pnl-label">الربح/الخسارة اليومي:</span>
+                    <span class="pnl-value positive">+$0.00 (0.00%)</span>
+                </div>
+            </div>
+            
+            <div class="nav-actions">
+                <button class="nav-btn menu-toggle-btn hidden">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <button class="nav-btn" id="vaultStatus">
+                    <i class="fas fa-lock"></i>
+                    <span>الخزنة مقفلة</span>
+                </button>
+                <button class="nav-btn" id="userMenu">
+                    <i class="fas fa-user"></i>
+                    <span id="currentUser">المستخدم</span>
+                </button>
+                <button class="nav-btn" id="powerBtn" title="انقر للخروج، اضغط مع Shift للإغلاق">
+                    <i class="fas fa-power-off"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- شريط التنقل الجانبي -->
+        <aside class="sidebar">
+            <div class="sidebar-menu">
+                <a href="#" class="menu-item active" data-page="home">
+                    <i class="fas fa-home"></i>
+                    <span>الرئيسية</span>
+                </a>
+                <a href="#" class="menu-item" data-page="platforms">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>المنصات</span>
+                </a>
+                <a href="#" class="menu-item" data-page="assistant">
+                    <i class="fas fa-robot"></i>
+                    <span>المساعد الذكي</span>
+                </a>
+                <a href="#" class="menu-item" data-page="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>الإعدادات</span>
+                </a>
+            </div>
+            <div class="sidebar-footer">
+                <a href="#" class="menu-item" id="sidebarLogoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>تسجيل الخروج</span>
+                </a>
+            </div>
+            <div class="sidebar-footer">
+                <a href="#" class="menu-item" id="sidebarLogoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>تسجيل الخروج</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="main-content">
+            <!-- صفحة الرئيسية -->
+            <div id="homePage" class="page active">
+                <div class="page-header">
+                    <h2>لوحة التحكم الرئيسية</h2>
+                    <div class="header-actions">
+                        <button class="btn-secondary" id="refreshData">
+                            <i class="fas fa-sync-alt"></i>
+                            تحديث البيانات
+                        </button>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- ملخص الحساب -->
+                    <div class="card account-summary">
+                        <div class="card-header">
+                            <h3>ملخص الحساب</h3>
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="card-content">
+                            <div class="summary-item">
+                                <span class="label">الرصيد الحالي:</span>
+                                <span class="value" id="currentBalance">$10,000.00</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">الربح/الخسارة غير المحققة:</span>
+                                <span class="value positive" id="unrealizedPnL">+$0.00</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">إجمالي الأسهم:</span>
+                                <span class="value" id="totalEquity">$10,000.00</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">المراكز المفتوحة:</span>
+                                <span class="value" id="openPositions">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- الرسم البياني للأداء -->
+                    <div class="card performance-chart">
+                        <div class="card-header">
+                            <h3>أداء المحفظة</h3>
+                            <i class="fas fa-chart-area"></i>
+                        </div>
+                        <div class="card-content">
+                            <canvas id="performanceChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- المراكز المفتوحة -->
+                    <div class="card positions-card">
+                        <div class="card-header">
+                            <h3>المراكز المفتوحة</h3>
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="card-content">
+                            <div class="table-container">
+                                <table id="positionsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>الرمز</th>
+                                            <th>النوع</th>
+                                            <th>الكمية</th>
+                                            <th>سعر الدخول</th>
+                                            <th>السعر الحالي</th>
+                                            <th>الربح/الخسارة</th>
+                                            <th>الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="no-data">
+                                            <td colspan="7">لا توجد مراكز مفتوحة</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- الأوامر المعلقة -->
+                    <div class="card orders-card">
+                        <div class="card-header">
+                            <h3>الأوامر المعلقة</h3>
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div class="card-content">
+                            <div class="table-container">
+                                <table id="ordersTable">
+                                    <thead>
+                                        <tr>
+                                            <th>الرمز</th>
+                                            <th>النوع</th>
+                                            <th>الجهة</th>
+                                            <th>الكمية</th>
+                                            <th>السعر</th>
+                                            <th>الحالة</th>
+                                            <th>الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="no-data">
+                                            <td colspan="7">لا توجد أوامر معلقة</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- صفحة المنصات -->
+            <div id="platformsPage" class="page">
+                <div class="page-header">
+                    <h2>إدارة المنصات</h2>
+                    <div class="header-actions">
+                        <button class="btn-primary" id="addPlatformBtn">
+                            <i class="fas fa-plus"></i>
+                            إضافة منصة
+                        </button>
+                    </div>
+                </div>
+
+                <div class="platforms-grid" id="platformsGrid">
+                    <!-- سيتم إضافة المنصات هنا ديناميكياً -->
+                </div>
+            </div>
+
+            <!-- صفحة المساعد الذكي -->
+            <div id="assistantPage" class="page">
+                <div class="page-header">
+                    <h2>المساعد الذكي</h2>
+                    <div class="header-actions">
+                        <button class="btn-secondary" id="voiceBtn">
+                            <i class="fas fa-microphone"></i>
+                            التحدث
+                        </button>
+                    </div>
+                </div>
+
+                <div class="assistant-container">
+                    <div class="daily-plan-card">
+                        <div class="card-header">
+                            <h3>الخطة اليومية</h3>
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                        <div class="card-content" id="dailyPlan">
+                            <div class="plan-item">
+                                <div class="plan-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="plan-content">
+                                    <h4>تحليل السوق</h4>
+                                    <p>السوق في حالة تذبذب، يُنصح بالحذر والتركيز على BTCUSDT</p>
+                                </div>
+                            </div>
+                            <div class="plan-item">
+                                <div class="plan-icon">
+                                    <i class="fas fa-target"></i>
+                                </div>
+                                <div class="plan-content">
+                                    <h4>الفرص المتاحة</h4>
+                                    <p>إشارة شراء محتملة على BTCUSDT عند كسر مستوى 45,000</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recommendations-card">
+                        <div class="card-header">
+                            <h3>التوصيات الحالية</h3>
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <div class="card-content" id="recommendations">
+                            <!-- سيتم إضافة التوصيات هنا -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- صفحة الإعدادات -->
+            <div id="settingsPage" class="page">
+                <div class="page-header">
+                    <h2>الإعدادات</h2>
+                </div>
+
+                <div class="settings-container">
+                    <div class="settings-section">
+                        <h3>الحساب والأمان</h3>
+                        <div class="setting-item">
+                            <label>المصادقة الثنائية</label>
+                            <button class="btn-secondary" id="toggle2FA">تفعيل</button>
+                        </div>
+                        <div class="setting-item">
+                            <label>تغيير كلمة المرور</label>
+                            <button class="btn-secondary" id="changePasswordBtn">تغيير</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>التداول والمخاطر</h3>
+                        <div class="setting-item">
+                            <label>نسبة المخاطرة لكل صفقة</label>
+                            <input type="number" value="0.5" min="0.1" max="5" step="0.1" id="riskPerTrade">
+                            <span>%</span>
+                        </div>
+                        <div class="setting-item">
+                            <label>حد الخسارة اليومي</label>
+                            <input type="number" value="2" min="0.5" max="10" step="0.5" id="dailyLossLimit">
+                            <span>%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- حاوية الإشعارات -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+
