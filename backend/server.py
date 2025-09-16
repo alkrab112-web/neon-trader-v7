@@ -164,37 +164,43 @@ class AIService:
     async def get_market_analysis(symbol: str) -> str:
         try:
             # Using Emergent LLM Key for real AI analysis
-            import requests
-            
-            headers = {
-                "Authorization": f"Bearer {EMERGENT_LLM_KEY}",
-                "Content-Type": "application/json"
-            }
+            from emergentintegrations import EmergentLLM
             
             market_data = await MarketDataService.get_market_data(symbol)
             
             prompt = f"""
-            Analyze the following market data for {symbol} and provide a comprehensive trading analysis:
+            أنت خبير تحليل مالي متخصص في العملات المشفرة. قم بتحليل البيانات التالية لـ {symbol}:
             
-            Current Price: ${market_data['price']}
-            24h Change: ${market_data['change_24h']}
-            24h High: ${market_data['high_24h']}
-            24h Low: ${market_data['low_24h']}
+            السعر الحالي: ${market_data['price']}
+            التغيير خلال 24 ساعة: ${market_data['change_24h']}
+            أعلى سعر خلال 24 ساعة: ${market_data['high_24h']}
+            أدنى سعر خلال 24 ساعة: ${market_data['low_24h']}
             
-            Provide analysis in Arabic including:
-            1. Current market sentiment
-            2. Technical indicators overview
-            3. Support and resistance levels
-            4. Trading recommendation
+            قدم تحليلاً تقنياً شاملاً يتضمن:
+            1. تحليل الاتجاه الحالي (صاعد/هابط/جانبي)
+            2. مستويات الدعم والمقاومة المهمة
+            3. توصية التداول (شراء/بيع/انتظار)
+            4. إدارة المخاطر المقترحة
             
-            Keep it concise and actionable.
+            اجعل التحليل مختصراً وقابلاً للتطبيق باللغة العربية.
             """
             
-            # Mock response for now - will integrate real AI later
-            return f"تحليل فني لـ {symbol}: السعر الحالي ${market_data['price']} يظهر اتجاهاً إيجابياً مع دعم قوي عند ${market_data['low_24h']:.2f}. يُنصح بالمراقبة عند مستوى ${market_data['high_24h']:.2f} للدخول."
+            # Initialize Emergent LLM
+            llm = EmergentLLM(api_key=EMERGENT_LLM_KEY)
+            
+            # Get AI analysis
+            analysis = llm.generate_text(
+                messages=[{"role": "user", "content": prompt}],
+                model="gpt-4o-mini",
+                max_tokens=300
+            )
+            
+            return analysis.get('content', f"تحليل أساسي لـ {symbol}: السعر مستقر حالياً، يُنصح بالمتابعة قبل اتخاذ قرار.")
             
         except Exception as e:
-            return f"تحليل أساسي لـ {symbol}: السعر مستقر حالياً، يُنصح بالمتابعة قبل اتخاذ قرار."
+            logging.error(f"Error in AI analysis: {e}")
+            market_data = await MarketDataService.get_market_data(symbol)
+            return f"تحليل فني لـ {symbol}: السعر الحالي ${market_data['price']} يظهر اتجاهاً مستقراً. المستوى الداعم عند ${market_data['low_24h']:.2f} والمقاومة عند ${market_data['high_24h']:.2f}."
 
     @staticmethod
     async def generate_daily_plan(user_id: str) -> DailyPlan:
