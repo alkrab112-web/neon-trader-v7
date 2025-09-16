@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { AppContext } from '../App';
 import { 
   User, Shield, Bell, Palette, Database, Download, Upload, 
-  Lock, Key, Clock, Smartphone, Globe, DollarSign 
+  Lock, Key, Clock, Smartphone, Globe, DollarSign, Bot 
 } from 'lucide-react';
 
 const Settings = () => {
