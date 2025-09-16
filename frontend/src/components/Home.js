@@ -276,9 +276,16 @@ const Home = () => {
                   <p className={`font-semibold text-lg ${trade.pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}`}>
                     {formatCurrency(trade.pnl)}
                   </p>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-gray-400 mb-2">
                     {new Date(trade.created_at).toLocaleDateString('ar-SA')}
                   </p>
+                  <button
+                    onClick={() => handleCloseTrade(trade.id)}
+                    className="btn-danger text-xs px-3 py-1"
+                    disabled={loading}
+                  >
+                    إغلاق
+                  </button>
                 </div>
               </div>
             ))}
