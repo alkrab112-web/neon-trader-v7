@@ -24,11 +24,12 @@ const Navigation = () => {
               <button
                 key={item.id}
                 onClick={() => setCurrentPage(item.id)}
-                className={`flex flex-col items-center justify-center p-3 transition-all duration-300 rounded-xl ${
+                className={`flex flex-col items-center justify-center p-3 transition-all duration-300 rounded-xl min-w-[70px] ${
                   isActive
                     ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white neon-blue'
                     : 'text-gray-400 hover:text-white hover:bg-white/10'
                 }`}
+                data-testid={`nav-${item.id}`}
               >
                 <Icon size={20} className="mb-1" />
                 <span className="text-xs font-medium">{item.name}</span>
