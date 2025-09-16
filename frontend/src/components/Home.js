@@ -285,6 +285,85 @@ const Home = () => {
           </div>
         </div>
       )}
+
+      {/* Quick Trading Section */}
+      <div className="card border-green-500/30">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            <ShoppingCart className="text-green-400" size={20} />
+            تداول سريع
+          </h3>
+          <button
+            onClick={() => setShowQuickTrade(!showQuickTrade)}
+            className="btn-primary text-sm px-4 py-2"
+          >
+            <Plus size={16} className="mr-1" />
+            صفقة جديدة
+          </button>
+        </div>
+
+        {showQuickTrade && (
+          <div className="bg-white/5 p-4 rounded-lg space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">العملة</label>
+                <select
+                  value={quickTradeData.symbol}
+                  onChange={(e) => setQuickTradeData({...quickTradeData, symbol: e.target.value})}
+                  className="input-field"
+                >
+                  <option value="BTCUSDT">Bitcoin (BTC)</option>
+                  <option value="ETHUSDT">Ethereum (ETH)</option>
+                  <option value="ADAUSDT">Cardano (ADA)</option>
+                  <option value="BNBUSDT">BNB (BNB)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">النوع</label>
+                <select
+                  value={quickTradeData.trade_type}
+                  onChange={(e) => setQuickTradeData({...quickTradeData, trade_type: e.target.value})}
+                  className="input-field"
+                >
+                  <option value="buy">شراء</option>
+                  <option value="sell">بيع</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">الكمية</label>
+                <input
+                  type="number"
+                  value={quickTradeData.quantity}
+                  onChange={(e) => setQuickTradeData({...quickTradeData, quantity: parseFloat(e.target.value)})}
+                  className="input-field"
+                  step="0.001"
+                  min="0.001"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleQuickTrade}
+                className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-all ${
+                  quickTradeData.trade_type === 'buy' 
+                    ? 'bg-green-500 hover:bg-green-600 text-white' 
+                    : 'bg-red-500 hover:bg-red-600 text-white'
+                }`}
+                disabled={loading}
+              >
+                {loading ? <div className="spinner mr-2"></div> : null}
+                {quickTradeData.trade_type === 'buy' ? 'شراء' : 'بيع'} {quickTradeData.symbol}
+              </button>
+              <button
+                onClick={() => setShowQuickTrade(false)}
+                className="btn-secondary px-6"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
