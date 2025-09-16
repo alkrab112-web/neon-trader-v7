@@ -46,6 +46,28 @@ const Home = () => {
     return `${sign}${value.toFixed(2)}%`;
   };
 
+  const handleQuickTrade = async () => {
+    try {
+      await createTrade({
+        symbol: quickTradeData.symbol,
+        trade_type: quickTradeData.trade_type,
+        order_type: 'market',
+        quantity: quickTradeData.quantity
+      });
+      setShowQuickTrade(false);
+    } catch (error) {
+      console.error('Error creating quick trade:', error);
+    }
+  };
+
+  const handleCloseTrade = async (tradeId) => {
+    try {
+      await closeTrade(tradeId);
+    } catch (error) {
+      console.error('Error closing trade:', error);
+    }
+  };
+
   if (loading && !portfolio) {
     return (
       <div className="flex items-center justify-center min-h-screen">
