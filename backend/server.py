@@ -1009,6 +1009,76 @@ class SmartNotificationService:
             logging.error(f"Error creating notification: {e}")
             return None
 
+# Smart Notifications Routes
+@api_router.get("/notifications/{user_id}")
+async def get_user_notifications(user_id: str):
+    try:
+        notifications = await db.notifications.find({"user_id": user_id}).sort("created_at", -1).to_list(50)
+        # Remove _id fields
+        for notification in notifications:
+            notification.pop('_id', None)
+        return notifications
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/notifications/{user_id}/smart-alert")
+async def create_smart_alert(user_id: str):
+    try:
+        # Generate AI-powered market analysis
+        analysis = await SmartNotificationService.generate_market_analysis()
+        
+        # Detect opportunities
+        opportunities = await SmartNotificationService.detect_trading_opportunities(user_id)
+        
+        # Create notification with analysis
+        notification_data = {
+            'title': 'تحليل ذكي جديد للأسواق',
+            'message': analysis[:200] + "...",  # Truncate for notification
+            'type': 'ai_analysis',
+            'priority': 'high',
+            'timeframe': 'تحليل شامل'
+        }
+        
+        notification = await SmartNotificationService.create_smart_notification(
+            user_id, 'opportunity', notification_data
+        )
+        
+        return {
+            'notification': notification,
+            'analysis': analysis,
+            'opportunities': opportunities
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/notifications/{user_id}/opportunities")
+async def get_trading_opportunities(user_id: str):
+    try:
+        opportunities = await SmartNotificationService.detect_trading_opportunities(user_id)
+        return {'opportunities': opportunities}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.put("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str):
+    try:
+        result = await db.notifications.update_one(
+            {"id": notification_id},
+            {"$set": {"read": True}}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="الإشعار غير موجود")
+            
+        return {"message": "تم تحديد الإشعار كمقروء"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Include router
+app.include_router(api_router)
+
 # CORS
 app.add_middleware(
     CORSMiddleware,
