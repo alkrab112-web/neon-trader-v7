@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { AppContext } from '../App';
 import { TrendingUp, TrendingDown, DollarSign, Activity, Eye, EyeOff, Plus, ShoppingCart } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import axios from 'axios';
 
 const Home = () => {
   const { portfolio, trades, loading, createTrade, closeTrade, showToast, platforms } = useContext(AppContext);
