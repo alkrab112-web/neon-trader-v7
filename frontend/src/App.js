@@ -22,6 +22,9 @@ import Assistant from './components/Assistant';
 import Settings from './components/Settings';
 import Navigation from './components/Navigation';
 import Toast from './components/Toast';
+import Login from './components/Login';
+import Header from './components/Header';
+import SessionManager from './components/SessionManager';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -30,6 +33,10 @@ function App() {
   const [platforms, setPlatforms] = useState([]);
   const [toast, setToast] = useState(null);
   const [loading, setLoading] = useState(false);
+  
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // Toast system
   const showToast = (message, type = 'info') => {
@@ -40,7 +47,100 @@ function App() {
     setToast(null);
   };
 
-  // API calls
+  // Authentication functions
+  const login = async (masterPassword, twoFactorCode = null) => {
+    try {
+      setLoading(true);
+      
+      // Store session info
+      const sessionData = {
+        userId: USER_ID,
+        loginTime: Date.now(),
+        masterPassword: btoa(masterPassword), // Basic encoding for demo
+        sessionId: Math.random().toString(36).substr(2, 9)
+      };
+      
+      localStorage.setItem('neon_trader_session', JSON.stringify(sessionData));
+      setIsAuthenticated(true);
+      
+      // Load initial data after login
+      await Promise.all([
+        fetchPortfolio(),
+        fetchTrades(),
+        fetchPlatforms()
+      ]);
+      
+      return true;
+    } catch (error) {
+      console.error('Login error:', error);
+      showToast('خطأ في تسجيل الدخول', 'error');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      // Clear session data
+      localStorage.removeItem('neon_trader_session');
+      
+      // Reset state
+      setIsAuthenticated(false);
+      setPortfolio(null);
+      setTrades([]);
+      setPlatforms([]);
+      setCurrentPage('home');
+      
+      return true;
+    } catch (error) {
+      console.error('Logout error:', error);
+      return false;
+    }
+  };
+
+  // Check authentication on app start
+  useEffect(() => {
+    const checkAuth = () => {
+      try {
+        const sessionData = localStorage.getItem('neon_trader_session');
+        if (sessionData) {
+          const session = JSON.parse(sessionData);
+          const now = Date.now();
+          const sessionAge = now - session.loginTime;
+          const maxSessionAge = 24 * 60 * 60 * 1000; // 24 hours
+          
+          if (sessionAge < maxSessionAge) {
+            setIsAuthenticated(true);
+          } else {
+            // Session expired
+            localStorage.removeItem('neon_trader_session');
+            setIsAuthenticated(false);
+          }
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  // Load data when authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isCheckingAuth) {
+      fetchPortfolio();
+      fetchTrades();
+      fetchPlatforms();
+    }
+  }, [isAuthenticated, isCheckingAuth]);
+
+  // API calls (existing functions remain the same)
   const fetchPortfolio = async () => {
     try {
       const response = await axios.get(`/portfolio/${USER_ID}`);
@@ -137,20 +237,23 @@ function App() {
     }
   };
 
-  // Load initial data
-  useEffect(() => {
-    fetchPortfolio();
-    fetchTrades();
-    fetchPlatforms();
-  }, []);
-
   const contextValue = {
+    // Page state
     currentPage,
     setCurrentPage,
+    
+    // Data
     portfolio,
     trades,
     platforms,
     loading,
+    
+    // Authentication
+    isAuthenticated,
+    login,
+    logout,
+    
+    // Functions
     showToast,
     createTrade,
     closeTrade,
@@ -162,25 +265,51 @@ function App() {
     userId: USER_ID
   };
 
+  // Show loading screen during auth check
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center animate-pulse">
+            <span className="text-white font-bold text-xl">N7</span>
+          </div>
+          <div className="spinner mb-4"></div>
+          <p className="text-white">جاري تحميل التطبيق...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <AppContext.Provider value={contextValue}>
       <div className="app min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900" dir="rtl">
         {/* Glass morphism background */}
         <div className="fixed inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-pink-900/20 backdrop-blur-sm"></div>
         
-        {/* Navigation */}
-        <Navigation />
-        
-        {/* Main content */}
-        <div className="relative z-10 min-h-screen">          
-          {/* Page content - with proper margins for desktop/mobile */}
-          <main className="pb-20 md:pb-4 md:pr-24 transition-all duration-300">
-            {currentPage === 'home' && <Home />}
-            {currentPage === 'platforms' && <Platforms />}
-            {currentPage === 'assistant' && <Assistant />}
-            {currentPage === 'settings' && <Settings />}
-          </main>
-        </div>
+        {!isAuthenticated ? (
+          // Login Screen
+          <Login />
+        ) : (
+          // Main App with Session Management
+          <SessionManager>
+            {/* Navigation */}
+            <Navigation />
+            
+            {/* Header */}
+            <Header />
+            
+            {/* Main content */}
+            <div className="relative z-10 min-h-screen">          
+              {/* Page content - with proper margins for desktop/mobile */}
+              <main className="pt-20 pb-20 md:pb-4 md:pr-24 transition-all duration-300">
+                {currentPage === 'home' && <Home />}
+                {currentPage === 'platforms' && <Platforms />}
+                {currentPage === 'assistant' && <Assistant />}
+                {currentPage === 'settings' && <Settings />}
+              </main>
+            </div>
+          </SessionManager>
+        )}
 
         {/* Toast notifications */}
         {toast && (
