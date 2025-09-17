@@ -168,13 +168,13 @@ function App() {
         {/* Glass morphism background */}
         <div className="fixed inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-pink-900/20 backdrop-blur-sm"></div>
         
+        {/* Navigation */}
+        <Navigation />
+        
         {/* Main content */}
-        <div className="relative z-10 min-h-screen">
-          {/* Navigation */}
-          <Navigation />
-          
-          {/* Page content */}
-          <main className="pb-20">
+        <div className="relative z-10 min-h-screen">          
+          {/* Page content - with proper margins for desktop/mobile */}
+          <main className="pb-20 md:pb-4 md:pr-24 transition-all duration-300">
             {currentPage === 'home' && <Home />}
             {currentPage === 'platforms' && <Platforms />}
             {currentPage === 'assistant' && <Assistant />}
