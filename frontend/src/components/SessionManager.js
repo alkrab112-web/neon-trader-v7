@@ -73,7 +73,7 @@ const SessionManager = ({ children }) => {
 
       // Auto-lock
       if (timeSinceActivity >= AUTO_LOCK_MS) {
-        logout();
+        lockApp();
         showToast('تم قفل التطبيق بسبب عدم النشاط', 'info');
         return;
       }
