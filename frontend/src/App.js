@@ -357,6 +357,8 @@ function App() {
                 {currentPage === 'home' && <Home />}
                 {currentPage === 'platforms' && <Platforms />}
                 {currentPage === 'assistant' && <Assistant />}
+                {currentPage === 'tools' && <TradingTools />}
+                {currentPage === 'notifications' && <SmartNotifications />}
                 {currentPage === 'settings' && <Settings />}
               </main>
             </div>
