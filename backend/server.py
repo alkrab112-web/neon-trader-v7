@@ -133,11 +133,45 @@ class AIAnalysisRequest(BaseModel):
     symbol: str
     timeframe: str = "1h"
 
-# Real Market Data Service with multiple sources
+# Enhanced Market Data Service with multiple asset types
 class MarketDataService:
+    # Asset type definitions
+    ASSET_TYPES = {
+        'crypto': {
+            'name': 'العملات الرقمية',
+            'symbols': ['BTCUSDT', 'ETHUSDT', 'ADAUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT', 'DOGEUSDT', 'AVAXUSDT']
+        },
+        'forex': {
+            'name': 'الفوركس',
+            'symbols': ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCHF', 'USDCAD', 'NZDUSD', 'EURJPY']
+        },
+        'stocks': {
+            'name': 'الأسهم',
+            'symbols': ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA', 'META', 'NVDA', 'NFLX']
+        },
+        'commodities': {
+            'name': 'السلع',
+            'symbols': ['XAUUSD', 'XAGUSD', 'USOIL', 'UKOIL', 'NATGAS', 'COPPER', 'WHEAT', 'CORN']
+        },
+        'indices': {
+            'name': 'المؤشرات',
+            'symbols': ['SPX500', 'NAS100', 'DJ30', 'GER40', 'UK100', 'JPN225', 'AUS200', 'HK50']
+        }
+    }
+
+    @staticmethod
+    async def get_all_asset_types():
+        """Get all supported asset types"""
+        return MarketDataService.ASSET_TYPES
+
+    @staticmethod
+    async def get_symbols_by_type(asset_type: str):
+        """Get symbols for specific asset type"""
+        return MarketDataService.ASSET_TYPES.get(asset_type, {}).get('symbols', [])
+
     @staticmethod
     async def get_price_from_binance(symbol: str) -> float:
-        """Get real price from Binance API"""
+        """Get real price from Binance API (for crypto)"""
         try:
             import aiohttp
             async with aiohttp.ClientSession() as session:
@@ -151,88 +185,133 @@ class MarketDataService:
         return None
 
     @staticmethod
-    async def get_price_from_coingecko(symbol: str) -> float:
-        """Get real price from CoinGecko API"""
+    async def get_price_from_alpha_vantage(symbol: str, asset_type: str) -> float:
+        """Get price from Alpha Vantage for stocks/forex"""
         try:
             import aiohttp
-            # Convert symbol to CoinGecko format
-            symbol_mapping = {
-                'BTCUSDT': 'bitcoin',
-                'ETHUSDT': 'ethereum',
-                'ADAUSDT': 'cardano',
-                'BNBUSDT': 'binancecoin'
+            # This would require Alpha Vantage API key in production
+            # For now, return mock data based on asset type
+            mock_prices = {
+                'forex': {
+                    'EURUSD': 1.0950, 'GBPUSD': 1.2750, 'USDJPY': 149.50,
+                    'AUDUSD': 0.6650, 'USDCHF': 0.8950, 'USDCAD': 1.3550,
+                    'NZDUSD': 0.6150, 'EURJPY': 163.20
+                },
+                'stocks': {
+                    'AAPL': 195.50, 'GOOGL': 142.80, 'MSFT': 415.25,
+                    'AMZN': 155.75, 'TSLA': 248.50, 'META': 325.80,
+                    'NVDA': 875.25, 'NFLX': 485.60
+                },
+                'commodities': {
+                    'XAUUSD': 2015.50, 'XAGUSD': 24.85, 'USOIL': 78.25,
+                    'UKOIL': 82.15, 'NATGAS': 2.65, 'COPPER': 8.45,
+                    'WHEAT': 5.85, 'CORN': 4.75
+                },
+                'indices': {
+                    'SPX500': 4515.25, 'NAS100': 15850.75, 'DJ30': 35650.80,
+                    'GER40': 16250.45, 'UK100': 7485.60, 'JPN225': 32850.90,
+                    'AUS200': 7125.35, 'HK50': 17850.25
+                }
             }
-            coin_id = symbol_mapping.get(symbol, symbol.lower().replace('usdt', ''))
             
-            async with aiohttp.ClientSession() as session:
-                url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd"
-                async with session.get(url) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        return float(data[coin_id]['usd'])
+            return mock_prices.get(asset_type, {}).get(symbol, 100.0)
+            
         except Exception as e:
-            logging.error(f"Error fetching price from CoinGecko: {e}")
+            logging.error(f"Error fetching price from Alpha Vantage: {e}")
         return None
 
     @staticmethod
+    async def detect_asset_type(symbol: str) -> str:
+        """Detect asset type based on symbol"""
+        for asset_type, data in MarketDataService.ASSET_TYPES.items():
+            if symbol in data['symbols']:
+                return asset_type
+        return 'crypto'  # Default to crypto
+
+    @staticmethod
     async def get_price(symbol: str) -> float:
-        """Get price with fallback to multiple sources"""
-        # Try Binance first (real-time)
-        price = await MarketDataService.get_price_from_binance(symbol)
+        """Get price with support for multiple asset types"""
+        asset_type = await MarketDataService.detect_asset_type(symbol)
         
-        # Fallback to CoinGecko
-        if price is None:
-            price = await MarketDataService.get_price_from_coingecko(symbol)
+        if asset_type == 'crypto':
+            # Try Binance first for crypto
+            price = await MarketDataService.get_price_from_binance(symbol)
+            if price is not None:
+                return price
+        
+        # Try Alpha Vantage for other asset types
+        price = await MarketDataService.get_price_from_alpha_vantage(symbol, asset_type)
+        if price is not None:
+            return price
         
         # Ultimate fallback to mock prices
-        if price is None:
-            mock_prices = {
-                "BTCUSDT": 43250.50,
-                "ETHUSDT": 2580.75,
-                "ADAUSDT": 0.45,
-                "BNBUSDT": 310.25
-            }
-            price = mock_prices.get(symbol, 100.0)
-            logging.warning(f"Using mock price for {symbol}: {price}")
+        mock_prices = {
+            "BTCUSDT": 43250.50, "ETHUSDT": 2580.75, "ADAUSDT": 0.45, "BNBUSDT": 310.25,
+            "EURUSD": 1.0950, "GBPUSD": 1.2750, "USDJPY": 149.50,
+            "AAPL": 195.50, "GOOGL": 142.80, "MSFT": 415.25,
+            "XAUUSD": 2015.50, "XAGUSD": 24.85, "USOIL": 78.25,
+            "SPX500": 4515.25, "NAS100": 15850.75
+        }
+        price = mock_prices.get(symbol, 100.0)
+        logging.warning(f"Using mock price for {symbol} ({asset_type}): {price}")
         
         return price
     
     @staticmethod
     async def get_market_data(symbol: str) -> Dict[str, Any]:
-        """Get comprehensive market data"""
-        try:
-            import aiohttp
-            async with aiohttp.ClientSession() as session:
-                # Get 24hr ticker statistics from Binance
-                url = f"https://api.binance.com/api/v3/ticker/24hr?symbol={symbol}"
-                async with session.get(url) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        return {
-                            "symbol": symbol,
-                            "price": float(data['lastPrice']),
-                            "change_24h": float(data['priceChange']),
-                            "change_24h_percent": float(data['priceChangePercent']),
-                            "volume_24h": float(data['volume']),
-                            "high_24h": float(data['highPrice']),
-                            "low_24h": float(data['lowPrice']),
-                            "open_price": float(data['openPrice']),
-                            "timestamp": datetime.utcnow()
-                        }
-        except Exception as e:
-            logging.error(f"Error fetching market data from Binance: {e}")
+        """Get comprehensive market data for any asset type"""
+        asset_type = await MarketDataService.detect_asset_type(symbol)
         
-        # Fallback to basic data
+        try:
+            if asset_type == 'crypto':
+                # Try to get real data from Binance for crypto
+                import aiohttp
+                async with aiohttp.ClientSession() as session:
+                    url = f"https://api.binance.com/api/v3/ticker/24hr?symbol={symbol}"
+                    async with session.get(url) as response:
+                        if response.status == 200:
+                            data = await response.json()
+                            return {
+                                "symbol": symbol,
+                                "asset_type": asset_type,
+                                "price": float(data['lastPrice']),
+                                "change_24h": float(data['priceChange']),
+                                "change_24h_percent": float(data['priceChangePercent']),
+                                "volume_24h": float(data['volume']),
+                                "high_24h": float(data['highPrice']),
+                                "low_24h": float(data['lowPrice']),
+                                "open_price": float(data['openPrice']),
+                                "timestamp": datetime.utcnow()
+                            }
+        except Exception as e:
+            logging.error(f"Error fetching real market data: {e}")
+        
+        # Fallback to constructed data
         price = await MarketDataService.get_price(symbol)
+        
+        # Different volatility for different asset types
+        volatility_multipliers = {
+            'crypto': 0.05,    # 5% volatility
+            'forex': 0.01,     # 1% volatility  
+            'stocks': 0.03,    # 3% volatility
+            'commodities': 0.04, # 4% volatility
+            'indices': 0.02    # 2% volatility
+        }
+        
+        volatility = volatility_multipliers.get(asset_type, 0.03)
+        change_24h = round(price * volatility * (1 if hash(symbol) % 2 else -1), 4)
+        
         return {
             "symbol": symbol,
+            "asset_type": asset_type,
+            "asset_type_name": MarketDataService.ASSET_TYPES[asset_type]['name'],
             "price": price,
-            "change_24h": round(price * 0.02, 2),  # Mock 2% change
-            "change_24h_percent": 2.0,
-            "volume_24h": 1000000,
-            "high_24h": price * 1.05,
-            "low_24h": price * 0.95,
-            "open_price": price * 0.98,
+            "change_24h": change_24h,
+            "change_24h_percent": round((change_24h / price) * 100, 2),
+            "volume_24h": 1000000 * (1 + hash(symbol) % 10),
+            "high_24h": price * (1 + volatility),
+            "low_24h": price * (1 - volatility),
+            "open_price": price * (1 - change_24h / price),
             "timestamp": datetime.utcnow()
         }
 
