@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { AppContext } from '../App';
-import { Home, Settings, Bot, Layers } from 'lucide-react';
+import { Home, Settings, Bot, Layers, Wrench, Bell } from 'lucide-react';
 
 const Navigation = () => {
   const { currentPage, setCurrentPage } = useContext(AppContext);
@@ -9,6 +9,8 @@ const Navigation = () => {
     { id: 'home', name: 'الرئيسية', icon: Home },
     { id: 'platforms', name: 'المنصات', icon: Layers },
     { id: 'assistant', name: 'المساعد', icon: Bot },
+    { id: 'tools', name: 'الأدوات', icon: Wrench },
+    { id: 'notifications', name: 'الإشعارات', icon: Bell },
     { id: 'settings', name: 'الإعدادات', icon: Settings },
   ];
 
