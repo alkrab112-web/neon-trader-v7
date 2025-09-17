@@ -133,29 +133,107 @@ class AIAnalysisRequest(BaseModel):
     symbol: str
     timeframe: str = "1h"
 
-# Market Data Service (Mock for now)
+# Real Market Data Service with multiple sources
 class MarketDataService:
     @staticmethod
+    async def get_price_from_binance(symbol: str) -> float:
+        """Get real price from Binance API"""
+        try:
+            import aiohttp
+            async with aiohttp.ClientSession() as session:
+                url = f"https://api.binance.com/api/v3/ticker/price?symbol={symbol}"
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        return float(data['price'])
+        except Exception as e:
+            logging.error(f"Error fetching price from Binance: {e}")
+        return None
+
+    @staticmethod
+    async def get_price_from_coingecko(symbol: str) -> float:
+        """Get real price from CoinGecko API"""
+        try:
+            import aiohttp
+            # Convert symbol to CoinGecko format
+            symbol_mapping = {
+                'BTCUSDT': 'bitcoin',
+                'ETHUSDT': 'ethereum',
+                'ADAUSDT': 'cardano',
+                'BNBUSDT': 'binancecoin'
+            }
+            coin_id = symbol_mapping.get(symbol, symbol.lower().replace('usdt', ''))
+            
+            async with aiohttp.ClientSession() as session:
+                url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd"
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        return float(data[coin_id]['usd'])
+        except Exception as e:
+            logging.error(f"Error fetching price from CoinGecko: {e}")
+        return None
+
+    @staticmethod
     async def get_price(symbol: str) -> float:
-        # Mock prices - in real version this would fetch from exchanges
-        mock_prices = {
-            "BTCUSDT": 43250.50,
-            "ETHUSDT": 2580.75,
-            "ADAUSDT": 0.45,
-            "BNBUSDT": 310.25
-        }
-        return mock_prices.get(symbol, 100.0)
+        """Get price with fallback to multiple sources"""
+        # Try Binance first (real-time)
+        price = await MarketDataService.get_price_from_binance(symbol)
+        
+        # Fallback to CoinGecko
+        if price is None:
+            price = await MarketDataService.get_price_from_coingecko(symbol)
+        
+        # Ultimate fallback to mock prices
+        if price is None:
+            mock_prices = {
+                "BTCUSDT": 43250.50,
+                "ETHUSDT": 2580.75,
+                "ADAUSDT": 0.45,
+                "BNBUSDT": 310.25
+            }
+            price = mock_prices.get(symbol, 100.0)
+            logging.warning(f"Using mock price for {symbol}: {price}")
+        
+        return price
     
     @staticmethod
     async def get_market_data(symbol: str) -> Dict[str, Any]:
+        """Get comprehensive market data"""
+        try:
+            import aiohttp
+            async with aiohttp.ClientSession() as session:
+                # Get 24hr ticker statistics from Binance
+                url = f"https://api.binance.com/api/v3/ticker/24hr?symbol={symbol}"
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        return {
+                            "symbol": symbol,
+                            "price": float(data['lastPrice']),
+                            "change_24h": float(data['priceChange']),
+                            "change_24h_percent": float(data['priceChangePercent']),
+                            "volume_24h": float(data['volume']),
+                            "high_24h": float(data['highPrice']),
+                            "low_24h": float(data['lowPrice']),
+                            "open_price": float(data['openPrice']),
+                            "timestamp": datetime.utcnow()
+                        }
+        except Exception as e:
+            logging.error(f"Error fetching market data from Binance: {e}")
+        
+        # Fallback to basic data
         price = await MarketDataService.get_price(symbol)
         return {
             "symbol": symbol,
             "price": price,
             "change_24h": round(price * 0.02, 2),  # Mock 2% change
+            "change_24h_percent": 2.0,
             "volume_24h": 1000000,
             "high_24h": price * 1.05,
-            "low_24h": price * 0.95
+            "low_24h": price * 0.95,
+            "open_price": price * 0.98,
+            "timestamp": datetime.utcnow()
         }
 
 # AI Service
