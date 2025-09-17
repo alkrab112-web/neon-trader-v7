@@ -95,7 +95,7 @@ const Home = () => {
         {/* Total Balance */}
         <div className="card neon-blue">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">الرصيد الإجمالي</h3>
+            <h3 className="text-lg font-semibold text-white responsive-title">الرصيد الإجمالي</h3>
             <button
               onClick={() => setShowBalance(!showBalance)}
               className="text-gray-400 hover:text-white transition-colors"
@@ -104,12 +104,12 @@ const Home = () => {
             </button>
           </div>
           <div className="space-y-2">
-            <p className="text-3xl font-bold text-white">
+            <p className="text-3xl font-bold text-white text-overflow-fix">
               {showBalance ? formatCurrency(portfolio?.total_balance || 0) : '••••••'}
             </p>
             <div className="flex items-center gap-2">
               <DollarSign size={16} className="text-green-400" />
-              <span className="text-sm text-gray-300">متاح: {showBalance ? formatCurrency(portfolio?.available_balance || 0) : '••••••'}</span>
+              <span className="text-sm text-gray-300 responsive-text">متاح: {showBalance ? formatCurrency(portfolio?.available_balance || 0) : '••••••'}</span>
             </div>
           </div>
         </div>
