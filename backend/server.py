@@ -705,8 +705,23 @@ async def test_platform_connection(platform_id: str):
         if not platform:
             raise HTTPException(status_code=404, detail="المنصة غير موجودة")
         
-        # Mock connection test - in real version would test actual API
-        success = True  # Mock success
+        # Real connection test if API keys are provided
+        success = False
+        message = ""
+        
+        if platform.get('api_key') and platform.get('secret_key'):
+            # Test real connection
+            success = await RealTradingEngine.test_connection(
+                platform['platform_type'],
+                platform['api_key'],
+                platform['secret_key'],
+                platform['is_testnet']
+            )
+            message = "تم اختبار الاتصال بنجاح - المنصة متصلة!" if success else "فشل الاتصال - تحقق من صحة مفاتيح API"
+        else:
+            # Mock connection for platforms without API keys
+            success = True
+            message = "اختبار وهمي - أضف مفاتيح API للاتصال الحقيقي"
         
         status = PlatformStatus.CONNECTED if success else PlatformStatus.DISCONNECTED
         
@@ -715,10 +730,11 @@ async def test_platform_connection(platform_id: str):
             {"$set": {"status": status}}
         )
         
-        return {"success": success, "status": status, "message": "تم اختبار الاتصال بنجاح" if success else "فشل الاتصال"}
+        return {"success": success, "status": status, "message": message}
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logging.error(f"Platform connection test error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطأ في اختبار الاتصال: {str(e)}")
 
 # AI Assistant Routes
 @api_router.get("/ai/daily-plan/{user_id}")
