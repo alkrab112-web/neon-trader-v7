@@ -283,10 +283,12 @@ function App() {
     platforms,
     loading,
     
-    // Authentication
+    // Authentication & Lock
     isAuthenticated,
+    isLocked,
     login,
     logout,
+    lockApp,
     
     // Functions
     showToast,
