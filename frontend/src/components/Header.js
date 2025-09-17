@@ -3,21 +3,21 @@ import { AppContext } from '../App';
 import { LogOut, Shield, User, Power, Lock, Settings as SettingsIcon } from 'lucide-react';
 
 const Header = () => {
-  const { logout, portfolio, currentPage, showToast } = useContext(AppContext);
+  const { logout, lockApp, portfolio, currentPage, showToast } = useContext(AppContext);
   const [showLogoutMenu, setShowLogoutMenu] = useState(false);
 
-  const handleLogout = async () => {
+  const handleFullLogout = async () => {
     try {
       await logout();
-      showToast('تم تسجيل الخروج بنجاح', 'success');
+      showToast('تم تسجيل الخروج التام من التطبيق', 'success');
     } catch (error) {
       showToast('خطأ في تسجيل الخروج', 'error');
     }
   };
 
   const handleLockApp = () => {
-    logout();
-    showToast('تم قفل التطبيق', 'info');
+    lockApp();
+    showToast('تم قفل التطبيق مؤقتاً', 'info');
   };
 
   const getPageTitle = () => {
@@ -81,7 +81,7 @@ const Header = () => {
                 </div>
                 <div className="hidden md:block text-right">
                   <p className="text-sm font-medium text-white">المستخدم</p>
-                  <p className="text-xs text-gray-400">متصل بأمان</p>
+                  <p className="text-xs text-gray-400">جلسة نشطة</p>
                 </div>
               </button>
 
@@ -102,14 +102,6 @@ const Header = () => {
 
                     {/* Menu Items */}
                     <button
-                      onClick={handleLockApp}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-amber-400 hover:bg-amber-500/10 rounded-lg transition-colors"
-                    >
-                      <Lock size={16} />
-                      <span className="text-sm">قفل التطبيق</span>
-                    </button>
-
-                    <button
                       onClick={() => {
                         setShowLogoutMenu(false);
                         // Navigate to settings if needed
@@ -122,12 +114,16 @@ const Header = () => {
 
                     <div className="border-t border-white/10 my-2"></div>
 
+                    {/* Logout - Full Exit */}
                     <button
-                      onClick={handleLogout}
+                      onClick={handleFullLogout}
                       className="w-full flex items-center gap-3 px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                     >
                       <LogOut size={16} />
-                      <span className="text-sm">تسجيل خروج</span>
+                      <div className="text-right">
+                        <div className="text-sm font-medium">تسجيل خروج</div>
+                        <div className="text-xs text-red-300">خروج تام من التطبيق</div>
+                      </div>
                     </button>
                   </div>
 
@@ -142,13 +138,13 @@ const Header = () => {
               )}
             </div>
 
-            {/* Power Button */}
+            {/* Power Button - Lock App Only */}
             <button
-              onClick={handleLogout}
-              className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 transition-colors border border-red-500/30 group"
-              title="تسجيل خروج"
+              onClick={handleLockApp}
+              className="p-2 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 transition-colors border border-orange-500/30 group"
+              title="قفل التطبيق"
             >
-              <Power size={18} className="text-red-400 group-hover:text-red-300" />
+              <Power size={18} className="text-orange-400 group-hover:text-orange-300" />
             </button>
           </div>
         </div>
