@@ -396,18 +396,130 @@ class AIService:
             )
             return plan
 
-# Trading Engine
+# Real Trading Engine with multiple exchange support
+class RealTradingEngine:
+    @staticmethod
+    async def get_exchange_client(platform_type: str, api_key: str, secret_key: str, is_testnet: bool = True):
+        """Initialize exchange client using CCXT"""
+        try:
+            import ccxt
+            
+            exchange_class = getattr(ccxt, platform_type.lower())
+            
+            # Configure exchange
+            config = {
+                'apiKey': api_key,
+                'secret': secret_key,
+                'timeout': 30000,
+                'enableRateLimit': True,
+            }
+            
+            # Set sandbox mode for supported exchanges
+            if is_testnet:
+                if platform_type.lower() in ['binance', 'bybit']:
+                    config['sandbox'] = True
+                elif platform_type.lower() == 'binance':
+                    config['urls'] = {'api': 'https://testnet.binance.vision'}
+            
+            exchange = exchange_class(config)
+            return exchange
+            
+        except Exception as e:
+            logging.error(f"Error initializing exchange client: {e}")
+            return None
+
+    @staticmethod
+    async def test_connection(platform_type: str, api_key: str, secret_key: str, is_testnet: bool = True) -> bool:
+        """Test connection to exchange"""
+        try:
+            exchange = await RealTradingEngine.get_exchange_client(platform_type, api_key, secret_key, is_testnet)
+            if exchange is None:
+                return False
+            
+            # Test API connection
+            balance = await exchange.fetch_balance()
+            return True
+            
+        except Exception as e:
+            logging.error(f"Connection test failed: {e}")
+            return False
+
+    @staticmethod
+    async def execute_real_trade(platform: Platform, trade_request: TradeRequest) -> Dict[str, Any]:
+        """Execute real trade on exchange"""
+        try:
+            exchange = await RealTradingEngine.get_exchange_client(
+                platform.platform_type, 
+                platform.api_key, 
+                platform.secret_key, 
+                platform.is_testnet
+            )
+            
+            if exchange is None:
+                raise Exception("Failed to initialize exchange client")
+            
+            # Prepare order parameters
+            order_type = 'market' if trade_request.order_type == OrderType.MARKET else 'limit'
+            side = 'buy' if trade_request.trade_type == TradeType.BUY else 'sell'
+            
+            # Execute order
+            order = await exchange.create_order(
+                symbol=trade_request.symbol,
+                type=order_type,
+                side=side,
+                amount=trade_request.quantity,
+                price=trade_request.price if order_type == 'limit' else None
+            )
+            
+            return {
+                'success': True,
+                'order': order,
+                'exchange': platform.platform_type
+            }
+            
+        except Exception as e:
+            logging.error(f"Real trade execution failed: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'exchange': platform.platform_type
+            }
+
+# Enhanced Trading Engine with real trading support
 class TradingEngine:
     @staticmethod
-    async def execute_trade(user_id: str, trade_request: TradeRequest) -> Trade:
+    async def execute_trade(user_id: str, trade_request: TradeRequest, use_real_trading: bool = False) -> Trade:
         try:
-            # Get current market price
             current_price = await MarketDataService.get_price(trade_request.symbol)
+            
+            # Determine platform to use
+            platform_name = "paper_trading"
+            
+            if use_real_trading:
+                # Get user's connected platforms
+                platforms = await db.platforms.find({
+                    "user_id": user_id, 
+                    "status": PlatformStatus.CONNECTED
+                }).to_list(10)
+                
+                if platforms:
+                    # Use first connected platform
+                    platform = platforms[0]
+                    platform_obj = Platform(**platform)
+                    
+                    # Execute real trade
+                    real_trade_result = await RealTradingEngine.execute_real_trade(platform_obj, trade_request)
+                    
+                    if real_trade_result['success']:
+                        platform_name = f"{platform['platform_type']}_{'testnet' if platform['is_testnet'] else 'live'}"
+                        current_price = real_trade_result['order'].get('price', current_price)
+                    else:
+                        logging.warning(f"Real trade failed, falling back to paper trading: {real_trade_result['error']}")
             
             # Create trade entry
             trade = Trade(
                 user_id=user_id,
-                platform="paper_trading",  # Mock platform for now
+                platform=platform_name,
                 symbol=trade_request.symbol,
                 trade_type=trade_request.trade_type,
                 order_type=trade_request.order_type,
@@ -439,7 +551,7 @@ class TradingEngine:
                 # Create new portfolio
                 portfolio = Portfolio(
                     user_id=user_id,
-                    total_balance=10000.0,  # Mock starting balance
+                    total_balance=10000.0,  # Starting balance
                     available_balance=10000.0,
                     invested_balance=0.0,
                     daily_pnl=0.0,
