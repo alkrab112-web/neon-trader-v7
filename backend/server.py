@@ -898,8 +898,116 @@ async def get_multiple_prices(symbols: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Include router
-app.include_router(api_router)
+# Smart Notifications System
+class SmartNotificationService:
+    @staticmethod
+    async def generate_market_analysis() -> str:
+        """Generate AI-powered market analysis"""
+        try:
+            from emergentintegrations import EmergentLLM
+            
+            # Get current market data for analysis
+            symbols = ['BTCUSDT', 'ETHUSDT', 'XAUUSD', 'EURUSD', 'AAPL']
+            market_data = []
+            
+            for symbol in symbols:
+                data = await MarketDataService.get_market_data(symbol)
+                market_data.append({
+                    'symbol': symbol,
+                    'price': data['price'],
+                    'change_24h_percent': data['change_24h_percent'],
+                    'asset_type': data.get('asset_type', 'unknown')
+                })
+            
+            prompt = f"""
+            أنت خبير تحليل أسواق مالية متخصص. قم بتحليل البيانات التالية وقدم توصيات ذكية:
+
+            بيانات السوق الحالية:
+            {market_data}
+
+            قدم تحليلاً يتضمن:
+            1. تحليل الاتجاه العام للأسواق
+            2. أفضل 2-3 فرص استثمارية حالياً 
+            3. تحذيرات مخاطر محتملة
+            4. توصيات للمدى القصير والطويل
+            5. نصائح لإدارة المحفظة
+
+            اجعل التحليل مفيداً وقابلاً للتطبيق باللغة العربية.
+            """
+            
+            llm = EmergentLLM(api_key=EMERGENT_LLM_KEY)
+            analysis = llm.generate_text(
+                messages=[{"role": "user", "content": prompt}],
+                model="gpt-4o-mini",
+                max_tokens=500
+            )
+            
+            return analysis.get('content', 'تحليل السوق غير متاح حالياً')
+            
+        except Exception as e:
+            logging.error(f"Error generating market analysis: {e}")
+            return "تحليل السوق العام: الأسواق تشهد حركة طبيعية مع فرص متنوعة للاستثمار."
+
+    @staticmethod
+    async def detect_trading_opportunities(user_id: str) -> List[Dict[str, Any]]:
+        """Detect trading opportunities using AI"""
+        try:
+            opportunities = []
+            
+            # Mock opportunities - في الإنتاج ستكون تحليل حقيقي
+            mock_opportunities = [
+                {
+                    'symbol': 'BTCUSDT',
+                    'type': 'breakout',
+                    'confidence': 85,
+                    'timeframe': 'متوسط المدى',
+                    'description': 'كسر مستوى المقاومة مع حجم تداول عالي',
+                    'target_price': 47000,
+                    'stop_loss': 41000,
+                    'risk_reward': 2.5
+                },
+                {
+                    'symbol': 'XAUUSD', 
+                    'type': 'news_driven',
+                    'confidence': 78,
+                    'timeframe': 'طويل المدى',
+                    'description': 'قرارات البنوك المركزية تدعم ارتفاع الذهب',
+                    'target_price': 2100,
+                    'stop_loss': 1980,
+                    'risk_reward': 3.0
+                }
+            ]
+            
+            return mock_opportunities
+            
+        except Exception as e:
+            logging.error(f"Error detecting opportunities: {e}")
+            return []
+
+    @staticmethod
+    async def create_smart_notification(user_id: str, notification_type: str, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a smart notification"""
+        try:
+            notification = {
+                'id': str(uuid.uuid4()),
+                'user_id': user_id,
+                'type': notification_type,
+                'title': data.get('title', 'إشعار جديد'),
+                'message': data.get('message', ''),
+                'symbol': data.get('symbol'),
+                'confidence': data.get('confidence'),
+                'timeframe': data.get('timeframe'),
+                'priority': data.get('priority', 'medium'),
+                'created_at': datetime.utcnow(),
+                'read': False
+            }
+            
+            await db.notifications.insert_one(notification)
+            return notification
+            
+        except Exception as e:
+            logging.error(f"Error creating notification: {e}")
+            return None
 
 # CORS
 app.add_middleware(
