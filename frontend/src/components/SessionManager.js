@@ -3,7 +3,7 @@ import { AppContext } from '../App';
 import { Lock, Clock, Shield } from 'lucide-react';
 
 const SessionManager = ({ children }) => {
-  const { isAuthenticated, logout, showToast } = useContext(AppContext);
+  const { isAuthenticated, lockApp, logout, showToast } = useContext(AppContext);
   const [lastActivity, setLastActivity] = useState(Date.now());
   const [showLockWarning, setShowLockWarning] = useState(false);
   const [countdown, setCountdown] = useState(0);
