@@ -104,12 +104,21 @@ function App() {
   };
 
   const lockApp = () => {
-    // Lock app temporarily without clearing session
+    // Lock app temporarily without clearing session - just show unlock screen
     setIsLocked(true);
+    showToast('تم قفل التطبيق مؤقتاً', 'info');
   };
 
-  const unlockApp = async (masterPassword) => {
+  const unlockApp = async (masterPassword = null) => {
     try {
+      // For temporary lock, no password needed - just unlock
+      if (masterPassword === null) {
+        setIsLocked(false);
+        showToast('تم فتح القفل', 'success');
+        return true;
+      }
+      
+      // If password provided, verify it
       const sessionData = localStorage.getItem('neon_trader_session');
       if (sessionData) {
         const session = JSON.parse(sessionData);
@@ -117,6 +126,7 @@ function App() {
         
         if (storedPassword === masterPassword) {
           setIsLocked(false);
+          showToast('تم فتح القفل بنجاح', 'success');
           return true;
         } else {
           showToast('كلمة المرور غير صحيحة', 'error');
