@@ -861,6 +861,24 @@ async def get_market_data(symbol: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.get("/market/types/all")
+async def get_all_asset_types():
+    try:
+        types = await MarketDataService.get_all_asset_types()
+        return types
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/market/symbols/{asset_type}")
+async def get_symbols_by_asset_type(asset_type: str):
+    try:
+        symbols = await MarketDataService.get_symbols_by_type(asset_type)
+        if not symbols:
+            raise HTTPException(status_code=404, detail="نوع الأصل غير موجود")
+        return {"asset_type": asset_type, "symbols": symbols}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/market/prices/multiple")
 async def get_multiple_prices(symbols: str):
     try:
@@ -868,7 +886,13 @@ async def get_multiple_prices(symbols: str):
         prices = {}
         
         for symbol in symbol_list:
-            prices[symbol.strip()] = await MarketDataService.get_price(symbol.strip())
+            symbol = symbol.strip()
+            market_data = await MarketDataService.get_market_data(symbol)
+            prices[symbol] = {
+                "price": market_data["price"],
+                "change_24h_percent": market_data["change_24h_percent"],
+                "asset_type": market_data.get("asset_type", "unknown")
+            }
             
         return prices
     except Exception as e:
