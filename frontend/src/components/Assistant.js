@@ -63,12 +63,19 @@ const Assistant = () => {
         take_profit: selectedOpportunity.target
       };
 
-      await createTrade(tradeData);
-      setShowTradeDialog(false);
-      setSelectedOpportunity(null);
-      showToast('تم تنفيذ الصفقة بنجاح!', 'success');
+      const result = await createTrade(tradeData);
+      if (result) {
+        setShowTradeDialog(false);
+        setSelectedOpportunity(null);
+        showToast('تم تنفيذ الصفقة بنجاح من المساعد!', 'success');
+        
+        // Refresh data
+        await fetchTrades();
+        await fetchPortfolio();
+      }
     } catch (error) {
-      console.error('Error executing trade:', error);
+      console.error('Error executing trade from assistant:', error);
+      showToast('خطأ في تنفيذ الصفقة من المساعد', 'error');
     }
   };
 
