@@ -117,7 +117,7 @@ const Home = () => {
         {/* Daily PnL */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">الربح/الخسارة اليومية</h3>
+            <h3 className="text-lg font-semibold text-white responsive-title">الربح/الخسارة اليومية</h3>
             {(portfolio?.daily_pnl || 0) >= 0 ? (
               <TrendingUp className="text-green-400" size={20} />
             ) : (
@@ -125,10 +125,10 @@ const Home = () => {
             )}
           </div>
           <div className="space-y-2">
-            <p className={`text-3xl font-bold ${(portfolio?.daily_pnl || 0) >= 0 ? 'pnl-positive' : 'pnl-negative'}`}>
+            <p className={`text-3xl font-bold text-overflow-fix ${(portfolio?.daily_pnl || 0) >= 0 ? 'pnl-positive' : 'pnl-negative'}`}>
               {showBalance ? formatCurrency(portfolio?.daily_pnl || 0) : '••••••'}
             </p>
-            <p className={`text-sm ${(portfolio?.daily_pnl || 0) >= 0 ? 'pnl-positive' : 'pnl-negative'}`}>
+            <p className={`text-sm responsive-text ${(portfolio?.daily_pnl || 0) >= 0 ? 'pnl-positive' : 'pnl-negative'}`}>
               {formatPercentage(((portfolio?.daily_pnl || 0) / (portfolio?.total_balance || 1)) * 100)}
             </p>
           </div>
@@ -137,12 +137,12 @@ const Home = () => {
         {/* Active Trades */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">الصفقات النشطة</h3>
+            <h3 className="text-lg font-semibold text-white responsive-title">الصفقات النشطة</h3>
             <Activity className="text-blue-400" size={20} />
           </div>
           <div className="space-y-2">
             <p className="text-3xl font-bold text-white">{openTrades.length}</p>
-            <p className="text-sm text-gray-300">
+            <p className="text-sm text-gray-300 responsive-text">
               مستثمر: {showBalance ? formatCurrency(portfolio?.invested_balance || 0) : '••••••'}
             </p>
           </div>
