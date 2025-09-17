@@ -37,6 +37,7 @@ function App() {
   // Authentication state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isLocked, setIsLocked] = useState(false); // New: Lock state
 
   // Toast system
   const showToast = (message, type = 'info') => {
@@ -62,6 +63,7 @@ function App() {
       
       localStorage.setItem('neon_trader_session', JSON.stringify(sessionData));
       setIsAuthenticated(true);
+      setIsLocked(false); // Unlock when logging in
       
       // Load initial data after login
       await Promise.all([
@@ -82,11 +84,12 @@ function App() {
 
   const logout = async () => {
     try {
-      // Clear session data
+      // Clear session data completely
       localStorage.removeItem('neon_trader_session');
       
-      // Reset state
+      // Reset all state
       setIsAuthenticated(false);
+      setIsLocked(false);
       setPortfolio(null);
       setTrades([]);
       setPlatforms([]);
@@ -95,6 +98,37 @@ function App() {
       return true;
     } catch (error) {
       console.error('Logout error:', error);
+      return false;
+    }
+  };
+
+  const lockApp = () => {
+    // Lock app temporarily without clearing session
+    setIsLocked(true);
+  };
+
+  const unlockApp = async (masterPassword) => {
+    try {
+      const sessionData = localStorage.getItem('neon_trader_session');
+      if (sessionData) {
+        const session = JSON.parse(sessionData);
+        const storedPassword = atob(session.masterPassword);
+        
+        if (storedPassword === masterPassword) {
+          setIsLocked(false);
+          return true;
+        } else {
+          showToast('كلمة المرور غير صحيحة', 'error');
+          return false;
+        }
+      } else {
+        // No session found, redirect to full login
+        setIsAuthenticated(false);
+        return false;
+      }
+    } catch (error) {
+      console.error('Unlock error:', error);
+      showToast('خطأ في فتح القفل', 'error');
       return false;
     }
   };
