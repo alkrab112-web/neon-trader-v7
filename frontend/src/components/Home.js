@@ -315,6 +315,26 @@ const Home = () => {
 
         {showQuickTrade && (
           <div className="bg-white/5 p-4 rounded-lg space-y-4">
+            
+            {/* Real Trading Toggle */}
+            {hasConnectedPlatforms && (
+              <div className="flex items-center justify-between p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                <div>
+                  <span className="text-blue-400 font-medium">التداول الحقيقي</span>
+                  <p className="text-xs text-blue-300">استخدام منصة متصلة للتداول الفعلي</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useRealTrading}
+                    onChange={(e) => setUseRealTrading(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-600 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">العملة</label>
