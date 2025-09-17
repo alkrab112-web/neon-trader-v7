@@ -20,6 +20,8 @@ import Home from './components/Home';
 import Platforms from './components/Platforms';
 import Assistant from './components/Assistant';
 import Settings from './components/Settings';
+import TradingTools from './components/TradingTools';
+import SmartNotifications from './components/SmartNotifications';
 import Navigation from './components/Navigation';
 import Toast from './components/Toast';
 import Login from './components/Login';
