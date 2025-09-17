@@ -4,14 +4,18 @@ import { TrendingUp, TrendingDown, DollarSign, Activity, Eye, EyeOff, Plus, Shop
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const Home = () => {
-  const { portfolio, trades, loading, createTrade, closeTrade, showToast } = useContext(AppContext);
+  const { portfolio, trades, loading, createTrade, closeTrade, showToast, platforms } = useContext(AppContext);
   const [showBalance, setShowBalance] = useState(true);
   const [showQuickTrade, setShowQuickTrade] = useState(false);
+  const [useRealTrading, setUseRealTrading] = useState(false);
   const [quickTradeData, setQuickTradeData] = useState({
     symbol: 'BTCUSDT',
     trade_type: 'buy',
     quantity: 0.01
   });
+
+  // Check if any platform is connected for real trading
+  const hasConnectedPlatforms = platforms.some(p => p.status === 'connected');
 
   // Mock chart data for portfolio performance
   const chartData = [
