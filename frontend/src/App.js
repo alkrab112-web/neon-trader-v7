@@ -25,6 +25,7 @@ import Toast from './components/Toast';
 import Login from './components/Login';
 import Header from './components/Header';
 import SessionManager from './components/SessionManager';
+import UnlockScreen from './components/UnlockScreen';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
