@@ -243,8 +243,8 @@ const TradingTools = () => {
           
           <select className="input-field">
             <option>المؤشر</option>
-            <option>RSI > 70</option>
-            <option>RSI < 30</option>
+            <option>RSI أكبر من 70</option>
+            <option>RSI أقل من 30</option>
             <option>MACD إيجابي</option>
             <option>كسر مستوى المقاومة</option>
           </select>
