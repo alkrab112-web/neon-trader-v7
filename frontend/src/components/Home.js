@@ -372,18 +372,29 @@ const Home = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">العملة</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">نوع الأصل</label>
+                <select
+                  value={quickTradeData.asset_type}
+                  onChange={(e) => handleAssetTypeChange(e.target.value)}
+                  className="input-field"
+                >
+                  {Object.entries(assetTypes).map(([key, data]) => (
+                    <option key={key} value={key}>{data.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">الرمز</label>
                 <select
                   value={quickTradeData.symbol}
                   onChange={(e) => setQuickTradeData({...quickTradeData, symbol: e.target.value})}
                   className="input-field"
                 >
-                  <option value="BTCUSDT">Bitcoin (BTC)</option>
-                  <option value="ETHUSDT">Ethereum (ETH)</option>
-                  <option value="ADAUSDT">Cardano (ADA)</option>
-                  <option value="BNBUSDT">BNB (BNB)</option>
+                  {availableSymbols.map(symbol => (
+                    <option key={symbol} value={symbol}>{symbol}</option>
+                  ))}
                 </select>
               </div>
               <div>
