@@ -154,12 +154,12 @@ const Assistant = () => {
       {/* Welcome Message */}
       <div className="card border-blue-500/30">
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
             <Bot className="text-white" size={20} />
           </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-white mb-2">مرحباً بك! 👋</h3>
-            <p className="text-gray-300 text-sm leading-relaxed">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-white mb-2 responsive-title">مرحباً بك! 👋</h3>
+            <p className="text-gray-300 text-sm leading-relaxed responsive-text text-overflow-fix">
               أنا مساعدك الذكي لتحليل الأسواق وتقديم التوصيات. سأقوم بإعداد خطة يومية مخصصة
               وتحديد الفرص الاستثمارية المناسبة لك. جميع القرارات النهائية بيدك!
             </p>
