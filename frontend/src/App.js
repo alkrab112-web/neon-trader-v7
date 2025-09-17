@@ -326,6 +326,9 @@ function App() {
         {!isAuthenticated ? (
           // Login Screen
           <Login />
+        ) : isLocked ? (
+          // Unlock Screen - App is locked temporarily
+          <UnlockScreen onUnlock={unlockApp} />
         ) : (
           // Main App with Session Management
           <SessionManager>
