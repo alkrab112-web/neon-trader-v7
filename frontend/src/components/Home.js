@@ -9,10 +9,46 @@ const Home = () => {
   const [showQuickTrade, setShowQuickTrade] = useState(false);
   const [useRealTrading, setUseRealTrading] = useState(false);
   const [quickTradeData, setQuickTradeData] = useState({
+    asset_type: 'crypto',
     symbol: 'BTCUSDT',
     trade_type: 'buy',
     quantity: 0.01
   });
+  const [assetTypes, setAssetTypes] = useState({});
+  const [availableSymbols, setAvailableSymbols] = useState([]);
+
+  // Load asset types and symbols
+  useEffect(() => {
+    const loadAssetTypes = async () => {
+      try {
+        const response = await axios.get('/market/types/all');
+        setAssetTypes(response.data);
+        
+        // Load default symbols for crypto
+        const cryptoResponse = await axios.get('/market/symbols/crypto');
+        setAvailableSymbols(cryptoResponse.data.symbols);
+      } catch (error) {
+        console.error('Error loading asset types:', error);
+      }
+    };
+    
+    loadAssetTypes();
+  }, []);
+
+  // Update symbols when asset type changes
+  const handleAssetTypeChange = async (newAssetType) => {
+    try {
+      const response = await axios.get(`/market/symbols/${newAssetType}`);
+      setAvailableSymbols(response.data.symbols);
+      setQuickTradeData(prev => ({
+        ...prev,
+        asset_type: newAssetType,
+        symbol: response.data.symbols[0] || ''
+      }));
+    } catch (error) {
+      console.error('Error loading symbols:', error);
+    }
+  };
 
   // Check if any platform is connected for real trading
   const hasConnectedPlatforms = platforms.some(p => p.status === 'connected');
