@@ -149,12 +149,34 @@ body {
   border-radius: 20px;
   padding: 24px;
   transition: all 0.3s ease;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
   border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Text overflow fixes */
+.text-overflow-fix {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-width: 100%;
+}
+
+/* Responsive text sizes */
+.responsive-text {
+  font-size: clamp(0.875rem, 2vw, 1rem);
+  line-height: 1.5;
+}
+
+.responsive-title {
+  font-size: clamp(1.125rem, 3vw, 1.5rem);
+  line-height: 1.4;
 }
 
 /* Status indicators */
