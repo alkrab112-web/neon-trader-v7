@@ -227,7 +227,7 @@ class AuthService:
         return User(**user)
     
     @staticmethod
-    async def get_current_active_user(current_user: User = Depends(get_user_from_token)):
+    async def get_current_active_user(current_user: User = Depends(lambda: AuthService.get_user_from_token)):
         """Get current active user"""
         if not current_user.is_active:
             raise HTTPException(status_code=400, detail="Inactive user")
