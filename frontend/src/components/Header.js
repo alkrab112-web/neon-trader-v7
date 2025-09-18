@@ -80,8 +80,8 @@ const Header = () => {
                   <User size={16} className="text-white" />
                 </div>
                 <div className="hidden md:block text-right">
-                  <p className="text-sm font-medium text-white">المستخدم</p>
-                  <p className="text-xs text-gray-400">جلسة نشطة</p>
+                  <p className="text-sm font-medium text-white">{currentUser?.username || 'المستخدم'}</p>
+                  <p className="text-xs text-gray-400">{currentUser?.email || 'جلسة نشطة'}</p>
                 </div>
               </button>
 
