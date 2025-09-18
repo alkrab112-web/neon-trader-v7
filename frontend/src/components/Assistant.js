@@ -13,8 +13,6 @@ const Assistant = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isListening, setIsListening] = useState(false);
 
-  const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
   const fetchDailyPlan = async () => {
     try {
       const response = await axios.get('/ai/daily-plan');
