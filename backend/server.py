@@ -816,9 +816,7 @@ class TradingEngine:
             # Update portfolio
             await TradingEngine.update_portfolio(user_id, trade)
             
-            # Return enhanced trade object with execution details
-            enhanced_trade = Trade(**trade_dict)
-            return enhanced_trade
+            return trade
             
         except Exception as e:
             logging.error(f"Error executing trade: {e}")
