@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 class NeonTraderAPITester:
-    def __init__(self, base_url="https://marhaba-71.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://neon-trader.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.user_id = "user_12345"
         self.tests_run = 0
