@@ -1,11 +1,12 @@
-from fastapi import FastAPI, APIRouter, HTTPException, BackgroundTasks
+from fastapi import FastAPI, APIRouter, HTTPException, BackgroundTasks, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime, timedelta
@@ -13,6 +14,9 @@ from enum import Enum
 import json
 import asyncio
 import requests
+from passlib.context import CryptContext
+from jose import JWTError, jwt
+import hashlib
 
 # Load environment
 ROOT_DIR = Path(__file__).parent
