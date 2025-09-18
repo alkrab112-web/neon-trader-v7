@@ -197,6 +197,9 @@ backend:
         - working: true
           agent: "testing"
           comment: "⚠️ PLATFORM SYSTEM WORKING BUT TESTNET ONLY - GET /api/platforms and POST /api/platforms working correctly. Platform addition successful with proper user data isolation. However, all platforms default to testnet mode. Connection testing fails with 'فشل الاتصال - تحقق من صحة مفاتيح API' message, indicating real exchange API integration not working. System functional but limited to test environments."
+        - working: true
+          agent: "testing"
+          comment: "✅ PLATFORM TESTING SIGNIFICANTLY ENHANCED - PUT /api/platforms/{id}/test now provides detailed connection feedback! Enhanced response includes 'connection_details' with platform_type, error details, last_tested timestamp, and status. Clear Arabic error messages. Major improvement from basic connection testing to comprehensive diagnostic information. Still testnet/demo mode but with much better user feedback and debugging information."
 
   - task: "AI Daily Plan Generation"
     implemented: true
