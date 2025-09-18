@@ -766,6 +766,119 @@ class TradingEngine:
 async def root():
     return {"message": "Neon Trader V7 API", "status": "active", "version": "1.0.0"}
 
+# Authentication Routes
+@api_router.post("/auth/register", response_model=Token)
+async def register_user(user_data: UserRegister):
+    try:
+        # Validate password confirmation
+        if user_data.password != user_data.confirm_password:
+            raise HTTPException(status_code=400, detail="كلمات المرور غير متطابقة")
+        
+        # Check if user exists
+        existing_user = await db.users.find_one({"email": user_data.email})
+        if existing_user:
+            raise HTTPException(status_code=400, detail="البريد الإلكتروني مستخدم بالفعل")
+        
+        existing_username = await db.users.find_one({"username": user_data.username})
+        if existing_username:
+            raise HTTPException(status_code=400, detail="اسم المستخدم غير متاح")
+        
+        # Hash password
+        hashed_password = AuthService.get_password_hash(user_data.password)
+        
+        # Create user
+        user = User(
+            email=user_data.email,
+            username=user_data.username,
+            hashed_password=hashed_password
+        )
+        
+        # Save to database
+        await db.users.insert_one(user.dict())
+        
+        # Create access token
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = AuthService.create_access_token(
+            data={"sub": user.id}, expires_delta=access_token_expires
+        )
+        
+        # Create default portfolio for user
+        portfolio = Portfolio(
+            user_id=user.id,
+            total_balance=10000.0,
+            available_balance=10000.0,
+            invested_balance=0.0,
+            daily_pnl=0.0,
+            total_pnl=0.0
+        )
+        await db.portfolios.insert_one(portfolio.dict())
+        
+        return Token(
+            access_token=access_token,
+            token_type="bearer",
+            user_id=user.id,
+            email=user.email,
+            username=user.username
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Registration error: {e}")
+        raise HTTPException(status_code=500, detail="خطأ في إنشاء الحساب")
+
+@api_router.post("/auth/login", response_model=Token)
+async def login_user(user_data: UserLogin):
+    try:
+        # Find user
+        user = await db.users.find_one({"email": user_data.email})
+        if not user:
+            raise HTTPException(status_code=401, detail="البريد الإلكتروني أو كلمة المرور غير صحيحة")
+        
+        # Verify password
+        if not AuthService.verify_password(user_data.password, user["hashed_password"]):
+            raise HTTPException(status_code=401, detail="البريد الإلكتروني أو كلمة المرور غير صحيحة")
+        
+        # Check if account is active
+        if not user.get("is_active", True):
+            raise HTTPException(status_code=401, detail="الحساب غير نشط")
+        
+        # TODO: Handle 2FA if enabled
+        if user.get("two_factor_enabled", False) and not user_data.two_factor_code:
+            raise HTTPException(status_code=422, detail="مطلوب رمز التحقق الثنائي")
+        
+        # Create access token
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = AuthService.create_access_token(
+            data={"sub": user["id"]}, expires_delta=access_token_expires
+        )
+        
+        return Token(
+            access_token=access_token,
+            token_type="bearer",
+            user_id=user["id"],
+            email=user["email"],
+            username=user["username"]
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Login error: {e}")
+        raise HTTPException(status_code=500, detail="خطأ في تسجيل الدخول")
+
+@api_router.get("/auth/me")
+async def get_current_user(current_user: User = Depends(AuthService.get_user_from_token)):
+    """Get current user info"""
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "username": current_user.username,
+        "is_active": current_user.is_active,
+        "two_factor_enabled": current_user.two_factor_enabled,
+        "created_at": current_user.created_at
+    }
+
 # Portfolio Routes
 @api_router.get("/portfolio/{user_id}")
 async def get_portfolio(user_id: str):
