@@ -270,6 +270,38 @@ class MarketDataService:
         return MarketDataService.ASSET_TYPES.get(asset_type, {}).get('symbols', [])
 
     @staticmethod
+    async def get_price_from_coingecko(symbol: str) -> float:
+        """Get real price from CoinGecko API (free, no restrictions)"""
+        try:
+            import aiohttp
+            
+            # Map common symbols to CoinGecko IDs
+            symbol_map = {
+                'BTCUSDT': 'bitcoin',
+                'ETHUSDT': 'ethereum', 
+                'ADAUSDT': 'cardano',
+                'BNBUSDT': 'binancecoin',
+                'SOLUSDT': 'solana',
+                'XRPUSDT': 'ripple',
+                'DOGEUSDT': 'dogecoin',
+                'AVAXUSDT': 'avalanche-2'
+            }
+            
+            coin_id = symbol_map.get(symbol)
+            if not coin_id:
+                return None
+                
+            async with aiohttp.ClientSession() as session:
+                url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd"
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        return float(data[coin_id]['usd'])
+        except Exception as e:
+            logging.error(f"Error fetching price from CoinGecko: {e}")
+        return None
+
+    @staticmethod
     async def get_price_from_binance(symbol: str) -> float:
         """Get real price from Binance API (for crypto)"""
         try:
