@@ -202,7 +202,12 @@ class NeonTraderJWTTester:
     
     def test_protected_route_without_token(self):
         """Test accessing protected route without JWT token"""
-        return self.run_test("Portfolio Without Token", "GET", "/portfolio", 401)
+        # FastAPI HTTPBearer returns 403 when no Authorization header is present
+        success, response = self.run_test("Portfolio Without Token", "GET", "/portfolio", 403)
+        if not success:
+            # Also accept 401 as valid authentication failure
+            success, response = self.run_test("Portfolio Without Token (retry)", "GET", "/portfolio", 401)
+        return success, response
 
     def test_protected_route_with_invalid_token(self):
         """Test accessing protected route with invalid JWT token"""
