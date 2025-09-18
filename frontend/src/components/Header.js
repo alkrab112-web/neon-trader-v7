@@ -3,7 +3,7 @@ import { AppContext } from '../App';
 import { LogOut, Shield, User, Power, Lock, Settings as SettingsIcon } from 'lucide-react';
 
 const Header = () => {
-  const { logout, lockApp, portfolio, currentPage, showToast } = useContext(AppContext);
+  const { logout, lockApp, portfolio, currentPage, currentUser, showToast } = useContext(AppContext);
   const [showLogoutMenu, setShowLogoutMenu] = useState(false);
 
   const handleFullLogout = async () => {
