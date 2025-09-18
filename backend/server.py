@@ -905,18 +905,18 @@ async def get_portfolio(current_user: User = Depends(AuthService.get_user_from_t
         raise HTTPException(status_code=500, detail=str(e))
 
 # Trades Routes
-@api_router.post("/trades/{user_id}")
-async def create_trade(user_id: str, trade_request: TradeRequest):
+@api_router.post("/trades")
+async def create_trade(trade_request: TradeRequest, current_user: User = Depends(AuthService.get_user_from_token)):
     try:
-        trade = await TradingEngine.execute_trade(user_id, trade_request)
+        trade = await TradingEngine.execute_trade(current_user.id, trade_request)
         return {"message": "تم تنفيذ الصفقة بنجاح", "trade": trade.dict()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.get("/trades/{user_id}")
-async def get_trades(user_id: str):
+@api_router.get("/trades")
+async def get_trades(current_user: User = Depends(AuthService.get_user_from_token)):
     try:
-        trades = await db.trades.find({"user_id": user_id}).sort("created_at", -1).to_list(100)
+        trades = await db.trades.find({"user_id": current_user.id}).sort("created_at", -1).to_list(100)
         # Remove _id fields
         for trade in trades:
             trade.pop('_id', None)
