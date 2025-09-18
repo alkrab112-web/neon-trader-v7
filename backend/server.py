@@ -1092,39 +1092,89 @@ async def get_platforms(current_user: User = Depends(AuthService.get_user_from_t
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.put("/platforms/{platform_id}/test")
-async def test_platform_connection(platform_id: str):
+async def test_platform_connection(platform_id: str, current_user: User = Depends(AuthService.get_user_from_token)):
     try:
-        platform = await db.platforms.find_one({"id": platform_id})
+        platform = await db.platforms.find_one({"id": platform_id, "user_id": current_user.id})
         if not platform:
             raise HTTPException(status_code=404, detail="المنصة غير موجودة")
         
         # Real connection test if API keys are provided
         success = False
         message = ""
+        connection_details = {}
         
         if platform.get('api_key') and platform.get('secret_key'):
             # Test real connection
-            success = await RealTradingEngine.test_connection(
-                platform['platform_type'],
-                platform['api_key'],
-                platform['secret_key'],
-                platform['is_testnet']
-            )
-            message = "تم اختبار الاتصال بنجاح - المنصة متصلة!" if success else "فشل الاتصال - تحقق من صحة مفاتيح API"
+            try:
+                success = await RealTradingEngine.test_connection(
+                    platform['platform_type'],
+                    platform['api_key'],
+                    platform['secret_key'],
+                    platform['is_testnet']
+                )
+                
+                if success:
+                    message = f"✅ تم اختبار الاتصال بنجاح - المنصة متصلة بـ {platform['platform_type']}!"
+                    connection_details = {
+                        "platform_type": platform['platform_type'],
+                        "connection_mode": "testnet" if platform['is_testnet'] else "live",
+                        "last_tested": datetime.utcnow().isoformat(),
+                        "status": "active"
+                    }
+                else:
+                    message = f"❌ فشل الاتصال بـ {platform['platform_type']} - تحقق من صحة مفاتيح API"
+                    connection_details = {
+                        "platform_type": platform['platform_type'],
+                        "error": "authentication_failed",
+                        "last_tested": datetime.utcnow().isoformat(),
+                        "status": "failed"
+                    }
+                    
+            except Exception as e:
+                success = False
+                message = f"❌ خطأ في اختبار الاتصال بـ {platform['platform_type']}: {str(e)}"
+                connection_details = {
+                    "platform_type": platform['platform_type'],
+                    "error": str(e),
+                    "last_tested": datetime.utcnow().isoformat(),
+                    "status": "error"
+                }
         else:
             # Mock connection for platforms without API keys
             success = True
-            message = "اختبار وهمي - أضف مفاتيح API للاتصال الحقيقي"
+            message = f"⚠️ اختبار وهمي لـ {platform['name']} - أضف مفاتيح API للاتصال الحقيقي"
+            connection_details = {
+                "platform_type": platform['platform_type'],
+                "connection_mode": "demo",
+                "message": "تحتاج إضافة مفاتيح API",
+                "last_tested": datetime.utcnow().isoformat(),
+                "status": "demo"
+            }
         
         status = PlatformStatus.CONNECTED if success else PlatformStatus.DISCONNECTED
         
+        # Update platform with connection details
         await db.platforms.update_one(
             {"id": platform_id},
-            {"$set": {"status": status}}
+            {
+                "$set": {
+                    "status": status,
+                    "last_tested": datetime.utcnow().isoformat(),
+                    "connection_details": connection_details
+                }
+            }
         )
         
-        return {"success": success, "status": status, "message": message}
+        return {
+            "success": success, 
+            "status": status, 
+            "message": message,
+            "connection_details": connection_details,
+            "platform_name": platform['name']
+        }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Platform connection test error: {e}")
         raise HTTPException(status_code=500, detail=f"خطأ في اختبار الاتصال: {str(e)}")
