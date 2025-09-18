@@ -28,7 +28,7 @@ const Assistant = () => {
   const analyzeMarket = async (symbol) => {
     try {
       setIsAnalyzing(true);
-      const response = await axios.post(`${API}/ai/analyze`, {
+      const response = await axios.post('/ai/analyze', {
         symbol: symbol,
         timeframe: '1h'
       });
