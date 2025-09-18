@@ -1264,11 +1264,14 @@ class SmartNotificationService:
                 'confidence': data.get('confidence'),
                 'timeframe': data.get('timeframe'),
                 'priority': data.get('priority', 'medium'),
-                'created_at': datetime.utcnow(),
+                'created_at': datetime.utcnow().isoformat(),  # Serialize to ISO string
                 'read': False
             }
             
             await db.notifications.insert_one(notification)
+            
+            # Remove MongoDB _id for clean response
+            notification.pop('_id', None)
             return notification
             
         except Exception as e:
