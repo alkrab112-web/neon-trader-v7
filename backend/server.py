@@ -762,6 +762,7 @@ class TradingEngine:
             
             # Determine platform to use
             platform_name = "paper_trading"
+            trade_executed_real = False
             
             if use_real_trading:
                 # Get user's connected platforms
@@ -781,8 +782,14 @@ class TradingEngine:
                     if real_trade_result['success']:
                         platform_name = f"{platform['platform_type']}_{'testnet' if platform['is_testnet'] else 'live'}"
                         current_price = real_trade_result['order'].get('price', current_price)
+                        trade_executed_real = True
+                        logging.info(f"Real trade executed successfully on {platform_name}")
                     else:
-                        logging.warning(f"Real trade failed, falling back to paper trading: {real_trade_result['error']}")
+                        logging.warning(f"Real trade failed, using paper trading: {real_trade_result['error']}")
+                        platform_name = "paper_trading_fallback"
+                else:
+                    logging.warning("No connected platforms found, using paper trading")
+                    platform_name = "paper_trading_no_platforms"
             
             # Create trade entry
             trade = Trade(
@@ -798,8 +805,13 @@ class TradingEngine:
                 status=TradeStatus.OPEN
             )
             
+            # Add metadata about trade execution
+            trade_dict = trade.dict()
+            trade_dict['execution_type'] = 'real' if trade_executed_real else 'paper'
+            trade_dict['current_market_price'] = current_price
+            
             # Save to database
-            await db.trades.insert_one(trade.dict())
+            await db.trades.insert_one(trade_dict)
             
             # Update portfolio
             await TradingEngine.update_portfolio(user_id, trade)
