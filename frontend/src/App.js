@@ -9,11 +9,38 @@ const AppContext = createContext();
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Mock user ID for now
-const USER_ID = "user_12345";
-
 // Configure axios defaults
 axios.defaults.baseURL = API;
+
+// JWT Token management
+const getStoredToken = () => localStorage.getItem('neon_trader_token');
+const setStoredToken = (token) => localStorage.setItem('neon_trader_token', token);
+const removeStoredToken = () => localStorage.removeItem('neon_trader_token');
+
+// Set up axios interceptor for JWT tokens
+axios.interceptors.request.use(
+  (config) => {
+    const token = getStoredToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Handle 401 responses globally
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Token expired or invalid, clear it and redirect to login
+      removeStoredToken();
+      window.location.reload(); // Force re-authentication
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Components
 import Home from './components/Home';
