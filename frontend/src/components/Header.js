@@ -47,7 +47,7 @@ const Header = () => {
             <div>
               <h1 className="text-xl font-bold text-white">{getPageTitle()}</h1>
               <p className="text-sm text-gray-400">
-                مرحباً بك في منصة التداول الذكية
+                مرحباً {currentUser?.username || 'المستخدم'}
               </p>
             </div>
           </div>
