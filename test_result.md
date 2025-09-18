@@ -182,6 +182,9 @@ backend:
         - working: true
           agent: "testing"
           comment: "⚠️ TRADING ENGINE WORKING BUT PAPER TRADING ONLY - GET /api/trades and POST /api/trades both working correctly. Trade creation successful with proper user isolation. However, all trades are executed on 'paper_trading' platform, not real exchanges. Entry prices showing unusual values ($100 for BTC instead of realistic $43,000+). System is functional but simulated trading only."
+        - working: true
+          agent: "testing"
+          comment: "✅ TRADING ENGINE SIGNIFICANTLY ENHANCED - POST /api/trades now includes enhanced execution details! Trade response now contains 'execution_type': 'paper' and 'current_market_price': $117,291 (realistic price from CoinGecko). Major improvement from previous missing execution details. Trading system now provides clear transparency about execution type and real market prices. Still paper trading but with enhanced information and realistic pricing."
 
   - task: "Platform Integration System"
     implemented: true
