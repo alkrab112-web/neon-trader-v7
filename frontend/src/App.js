@@ -196,23 +196,28 @@ function App() {
 
   // Check authentication on app start
   useEffect(() => {
-    const checkAuth = () => {
+    const checkAuth = async () => {
       try {
-        const sessionData = localStorage.getItem('neon_trader_session');
-        if (sessionData) {
-          const session = JSON.parse(sessionData);
-          const now = Date.now();
-          const sessionAge = now - session.loginTime;
-          const maxSessionAge = 24 * 60 * 60 * 1000; // 24 hours
-          
-          if (sessionAge < maxSessionAge) {
-            setIsAuthenticated(true);
-          } else {
-            // Session expired
-            localStorage.removeItem('neon_trader_session');
+        const token = getStoredToken();
+        if (token) {
+          // Verify token with backend
+          try {
+            const response = await axios.get('/auth/me');
+            if (response.data) {
+              setCurrentUser(response.data);
+              setIsAuthenticated(true);
+            } else {
+              // Invalid token
+              removeStoredToken();
+              setIsAuthenticated(false);
+            }
+          } catch (error) {
+            // Token expired or invalid
+            removeStoredToken();
             setIsAuthenticated(false);
           }
         } else {
+          // No token
           setIsAuthenticated(false);
         }
       } catch (error) {
@@ -228,17 +233,17 @@ function App() {
 
   // Load data when authenticated
   useEffect(() => {
-    if (isAuthenticated && !isCheckingAuth) {
+    if (isAuthenticated && !isCheckingAuth && currentUser) {
       fetchPortfolio();
       fetchTrades();
       fetchPlatforms();
     }
-  }, [isAuthenticated, isCheckingAuth]);
+  }, [isAuthenticated, isCheckingAuth, currentUser]);
 
-  // API calls (existing functions remain the same)
+  // API calls with JWT authentication
   const fetchPortfolio = async () => {
     try {
-      const response = await axios.get(`/portfolio/${USER_ID}`);
+      const response = await axios.get('/portfolio');
       setPortfolio(response.data);
     } catch (error) {
       console.error('Error fetching portfolio:', error);
@@ -248,7 +253,7 @@ function App() {
 
   const fetchTrades = async () => {
     try {
-      const response = await axios.get(`/trades/${USER_ID}`);
+      const response = await axios.get('/trades');
       setTrades(response.data);
     } catch (error) {
       console.error('Error fetching trades:', error);
@@ -258,7 +263,7 @@ function App() {
 
   const fetchPlatforms = async () => {
     try {
-      const response = await axios.get(`/platforms/${USER_ID}`);
+      const response = await axios.get('/platforms');
       setPlatforms(response.data);
     } catch (error) {
       console.error('Error fetching platforms:', error);
@@ -269,7 +274,7 @@ function App() {
   const createTrade = async (tradeData) => {
     try {
       setLoading(true);
-      const response = await axios.post(`/trades/${USER_ID}`, tradeData);
+      const response = await axios.post('/trades', tradeData);
       showToast(response.data.message, 'success');
       await fetchTrades();
       await fetchPortfolio();
@@ -303,7 +308,7 @@ function App() {
   const addPlatform = async (platformData) => {
     try {
       setLoading(true);
-      const response = await axios.post(`/platforms/${USER_ID}`, platformData);
+      const response = await axios.post('/platforms', platformData);
       showToast(response.data.message, 'success');
       await fetchPlatforms();
       return response.data;
