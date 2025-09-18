@@ -67,6 +67,16 @@ class PlatformStatus(str, Enum):
     DISCONNECTED = "disconnected"
 
 # Models
+class User(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    email: EmailStr
+    username: str
+    hashed_password: str
+    is_active: bool = True
+    two_factor_enabled: bool = False
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
 class Portfolio(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
