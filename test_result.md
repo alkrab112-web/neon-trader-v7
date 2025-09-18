@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Complete security overhaul for Neon Trader V7 - Implement JWT-based authentication system, secure API endpoints, move secrets to environment variables, and integrate frontend with secure backend authentication."
+user_problem_statement: "تشخيص شامل لمشاكل الوظائف في تطبيق Neon Trader V7 - المستخدم يقول أن تسجيل الدخول والخروج يعمل لكن معظم الوظائف داخل التطبيق وهمية ولا تعمل، ويبدو أن التطبيق لا ينتقل للصفحة الرئيسية بعد تسجيل الدخول"
 
 backend:
   - task: "JWT Authentication System Implementation"
