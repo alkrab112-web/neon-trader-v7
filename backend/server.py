@@ -1029,19 +1029,19 @@ async def test_platform_connection(platform_id: str):
         raise HTTPException(status_code=500, detail=f"خطأ في اختبار الاتصال: {str(e)}")
 
 # AI Assistant Routes
-@api_router.get("/ai/daily-plan/{user_id}")
-async def get_daily_plan(user_id: str):
+@api_router.get("/ai/daily-plan")
+async def get_daily_plan(current_user: User = Depends(AuthService.get_user_from_token)):
     try:
         # Check if plan exists for today
         today = datetime.now().strftime("%Y-%m-%d")
-        existing_plan = await db.daily_plans.find_one({"user_id": user_id, "date": today})
+        existing_plan = await db.daily_plans.find_one({"user_id": current_user.id, "date": today})
         
         if existing_plan:
             existing_plan.pop('_id', None)
             return existing_plan
         
         # Generate new plan
-        plan = await AIService.generate_daily_plan(user_id)
+        plan = await AIService.generate_daily_plan(current_user.id)
         await db.daily_plans.insert_one(plan.dict())
         
         return plan.dict()
