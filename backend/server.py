@@ -138,6 +138,24 @@ class DailyPlan(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 # Request/Response Models
+class UserRegister(BaseModel):
+    email: EmailStr
+    username: str
+    password: str
+    confirm_password: str
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+    two_factor_code: Optional[str] = None
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    user_id: str
+    email: str
+    username: str
+
 class TradeRequest(BaseModel):
     symbol: str
     trade_type: TradeType
