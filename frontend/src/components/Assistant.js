@@ -17,7 +17,7 @@ const Assistant = () => {
 
   const fetchDailyPlan = async () => {
     try {
-      const response = await axios.get(`${API}/ai/daily-plan/${userId}`);
+      const response = await axios.get('/ai/daily-plan');
       setDailyPlan(response.data);
     } catch (error) {
       console.error('Error fetching daily plan:', error);
