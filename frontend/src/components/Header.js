@@ -96,7 +96,7 @@ const Header = () => {
                         <span className="text-green-400 text-sm font-medium">جلسة آمنة</span>
                       </div>
                       <p className="text-xs text-green-300 mt-1">
-                        محمي بتشفير AES-256
+                        محمي بتشفير JWT - {currentUser?.email}
                       </p>
                     </div>
 
