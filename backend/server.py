@@ -1012,7 +1012,14 @@ async def get_portfolio(current_user: User = Depends(AuthService.get_user_from_t
 async def create_trade(trade_request: TradeRequest, current_user: User = Depends(AuthService.get_user_from_token)):
     try:
         trade = await TradingEngine.execute_trade(current_user.id, trade_request)
-        return {"message": "تم تنفيذ الصفقة بنجاح", "trade": trade.dict()}
+        
+        # Get the enhanced trade data from database (includes execution_type and current_market_price)
+        enhanced_trade_data = await db.trades.find_one({"id": trade.id})
+        if enhanced_trade_data:
+            enhanced_trade_data.pop('_id', None)
+            return {"message": "تم تنفيذ الصفقة بنجاح", "trade": enhanced_trade_data}
+        else:
+            return {"message": "تم تنفيذ الصفقة بنجاح", "trade": trade.dict()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
