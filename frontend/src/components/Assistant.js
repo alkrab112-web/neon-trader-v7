@@ -4,7 +4,7 @@ import { Bot, TrendingUp, AlertCircle, CheckCircle, X, Edit3, Send, Mic, MicOff 
 import axios from 'axios';
 
 const Assistant = () => {
-  const { userId, showToast, createTrade, loading, fetchTrades, fetchPortfolio } = useContext(AppContext);
+  const { showToast, createTrade, loading, fetchTrades, fetchPortfolio } = useContext(AppContext);
   const [dailyPlan, setDailyPlan] = useState(null);
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
   const [showTradeDialog, setShowTradeDialog] = useState(false);
