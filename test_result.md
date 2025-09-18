@@ -221,7 +221,7 @@ backend:
 
   - task: "Market Data Service"
     implemented: true
-    working: false
+    working: true
     file: "server.py"
     stuck_count: 1
     priority: "high"
@@ -230,6 +230,9 @@ backend:
         - working: false
           agent: "testing"
           comment: "❌ MARKET DATA USING MOCK PRICES - GET /api/market/BTCUSDT returning $100 for Bitcoin instead of realistic $43,000+ price. All crypto symbols (BTC, ETH, ADA) returning same $100 price pattern. Binance API integration failing due to geo-restriction: 'Service unavailable from a restricted location'. System falling back to hardcoded mock prices. Real market data not available."
+        - working: true
+          agent: "testing"
+          comment: "✅ MARKET DATA SIGNIFICANTLY IMPROVED - CoinGecko API integration working! BTC now showing realistic price of $117,288 (was $100). ETH showing $4,586.5 (was $100). Data source shows 'CoinGecko_Real' indicating real API data. AAPL stocks showing realistic $195.50. Major improvement from previous mock prices. Only fallback to realistic mock prices when CoinGecko unavailable, but prices are now market-accurate instead of $100 placeholder."
 
   - task: "Asset Types and Multi-Market Support"
     implemented: true
