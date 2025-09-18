@@ -959,11 +959,11 @@ async def close_trade(trade_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Platforms Routes
-@api_router.post("/platforms/{user_id}")
-async def add_platform(user_id: str, platform_request: PlatformRequest):
+@api_router.post("/platforms")
+async def add_platform(platform_request: PlatformRequest, current_user: User = Depends(AuthService.get_user_from_token)):
     try:
         platform = Platform(
-            user_id=user_id,
+            user_id=current_user.id,
             name=platform_request.name,
             platform_type=platform_request.platform_type,
             api_key=platform_request.api_key,
@@ -978,10 +978,10 @@ async def add_platform(user_id: str, platform_request: PlatformRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.get("/platforms/{user_id}")
-async def get_platforms(user_id: str):
+@api_router.get("/platforms")
+async def get_platforms(current_user: User = Depends(AuthService.get_user_from_token)):
     try:
-        platforms = await db.platforms.find({"user_id": user_id}).to_list(100)
+        platforms = await db.platforms.find({"user_id": current_user.id}).to_list(100)
         # Remove _id and sensitive fields
         for platform in platforms:
             platform.pop('_id', None)
