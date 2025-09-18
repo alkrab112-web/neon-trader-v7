@@ -1223,10 +1223,10 @@ class SmartNotificationService:
             return None
 
 # Smart Notifications Routes
-@api_router.get("/notifications/{user_id}")
-async def get_user_notifications(user_id: str):
+@api_router.get("/notifications")
+async def get_user_notifications(current_user: User = Depends(AuthService.get_user_from_token)):
     try:
-        notifications = await db.notifications.find({"user_id": user_id}).sort("created_at", -1).to_list(50)
+        notifications = await db.notifications.find({"user_id": current_user.id}).sort("created_at", -1).to_list(50)
         # Remove _id fields
         for notification in notifications:
             notification.pop('_id', None)
@@ -1234,14 +1234,14 @@ async def get_user_notifications(user_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.post("/notifications/{user_id}/smart-alert")
-async def create_smart_alert(user_id: str):
+@api_router.post("/notifications/smart-alert")
+async def create_smart_alert(current_user: User = Depends(AuthService.get_user_from_token)):
     try:
         # Generate AI-powered market analysis
         analysis = await SmartNotificationService.generate_market_analysis()
         
         # Detect opportunities
-        opportunities = await SmartNotificationService.detect_trading_opportunities(user_id)
+        opportunities = await SmartNotificationService.detect_trading_opportunities(current_user.id)
         
         # Create notification with analysis
         notification_data = {
@@ -1253,7 +1253,7 @@ async def create_smart_alert(user_id: str):
         }
         
         notification = await SmartNotificationService.create_smart_notification(
-            user_id, 'opportunity', notification_data
+            current_user.id, 'opportunity', notification_data
         )
         
         return {
@@ -1265,10 +1265,10 @@ async def create_smart_alert(user_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.get("/notifications/{user_id}/opportunities")
-async def get_trading_opportunities(user_id: str):
+@api_router.get("/notifications/opportunities")
+async def get_trading_opportunities(current_user: User = Depends(AuthService.get_user_from_token)):
     try:
-        opportunities = await SmartNotificationService.detect_trading_opportunities(user_id)
+        opportunities = await SmartNotificationService.detect_trading_opportunities(current_user.id)
         return {'opportunities': opportunities}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
