@@ -351,6 +351,8 @@ function App() {
     // Authentication & Lock
     isAuthenticated,
     isLocked,
+    currentUser,
+    register,
     login,
     logout,
     lockApp,
@@ -364,7 +366,7 @@ function App() {
     fetchPortfolio,
     fetchTrades,
     fetchPlatforms,
-    userId: USER_ID
+    userId: currentUser?.id
   };
 
   // Show loading screen during auth check
