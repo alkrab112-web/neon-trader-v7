@@ -67,7 +67,8 @@ function App() {
   // Authentication state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [isLocked, setIsLocked] = useState(false); // New: Lock state
+  const [isLocked, setIsLocked] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null); // New: Store current user info
 
   // Toast system
   const showToast = (message, type = 'info') => {
@@ -78,35 +79,68 @@ function App() {
     setToast(null);
   };
 
-  // Authentication functions
-  const login = async (masterPassword, twoFactorCode = null) => {
+  // JWT Authentication functions
+  const register = async (userData) => {
     try {
       setLoading(true);
+      const response = await axios.post('/auth/register', userData);
       
-      // Store session info
-      const sessionData = {
-        userId: USER_ID,
-        loginTime: Date.now(),
-        masterPassword: btoa(masterPassword), // Basic encoding for demo
-        sessionId: Math.random().toString(36).substr(2, 9)
-      };
+      const { access_token, user_id, email, username } = response.data;
       
-      localStorage.setItem('neon_trader_session', JSON.stringify(sessionData));
+      // Store JWT token
+      setStoredToken(access_token);
+      
+      // Set user info
+      const userInfo = { id: user_id, email, username };
+      setCurrentUser(userInfo);
       setIsAuthenticated(true);
-      setIsLocked(false); // Unlock when logging in
+      setIsLocked(false);
       
-      // Load initial data after login
+      // Load initial data
       await Promise.all([
         fetchPortfolio(),
         fetchTrades(),
         fetchPlatforms()
       ]);
       
-      return true;
+      return { success: true, message: 'تم إنشاء الحساب بنجاح' };
+    } catch (error) {
+      console.error('Registration error:', error);
+      const message = error.response?.data?.detail || 'خطأ في إنشاء الحساب';
+      return { success: false, message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const login = async (loginData) => {
+    try {
+      setLoading(true);
+      const response = await axios.post('/auth/login', loginData);
+      
+      const { access_token, user_id, email, username } = response.data;
+      
+      // Store JWT token
+      setStoredToken(access_token);
+      
+      // Set user info
+      const userInfo = { id: user_id, email, username };
+      setCurrentUser(userInfo);
+      setIsAuthenticated(true);
+      setIsLocked(false);
+      
+      // Load initial data
+      await Promise.all([
+        fetchPortfolio(),
+        fetchTrades(),
+        fetchPlatforms()
+      ]);
+      
+      return { success: true, message: 'تم تسجيل الدخول بنجاح' };
     } catch (error) {
       console.error('Login error:', error);
-      showToast('خطأ في تسجيل الدخول', 'error');
-      return false;
+      const message = error.response?.data?.detail || 'خطأ في تسجيل الدخول';
+      return { success: false, message };
     } finally {
       setLoading(false);
     }
@@ -114,12 +148,13 @@ function App() {
 
   const logout = async () => {
     try {
-      // Clear session data completely
-      localStorage.removeItem('neon_trader_session');
+      // Clear JWT token
+      removeStoredToken();
       
       // Reset all state
       setIsAuthenticated(false);
       setIsLocked(false);
+      setCurrentUser(null);
       setPortfolio(null);
       setTrades([]);
       setPlatforms([]);
@@ -133,42 +168,28 @@ function App() {
   };
 
   const lockApp = () => {
-    // Lock app temporarily without clearing session - just show unlock screen
+    // Lock app temporarily without clearing session
     setIsLocked(true);
     showToast('تم قفل التطبيق مؤقتاً', 'info');
   };
 
   const unlockApp = async (masterPassword = null) => {
     try {
-      // For temporary lock, no password needed - just unlock
-      if (masterPassword === null) {
+      // For temporary lock, verify current user still valid  
+      const currentUserResponse = await axios.get('/auth/me');
+      if (currentUserResponse.data) {
         setIsLocked(false);
         showToast('تم فتح القفل', 'success');
         return true;
-      }
-      
-      // If password provided, verify it
-      const sessionData = localStorage.getItem('neon_trader_session');
-      if (sessionData) {
-        const session = JSON.parse(sessionData);
-        const storedPassword = atob(session.masterPassword);
-        
-        if (storedPassword === masterPassword) {
-          setIsLocked(false);
-          showToast('تم فتح القفل بنجاح', 'success');
-          return true;
-        } else {
-          showToast('كلمة المرور غير صحيحة', 'error');
-          return false;
-        }
       } else {
-        // No session found, redirect to full login
-        setIsAuthenticated(false);
+        // Session invalid, redirect to login
+        await logout();
         return false;
       }
     } catch (error) {
       console.error('Unlock error:', error);
-      showToast('خطأ في فتح القفل', 'error');
+      // If token expired, logout
+      await logout();
       return false;
     }
   };
