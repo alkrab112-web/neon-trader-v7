@@ -880,14 +880,14 @@ async def get_current_user(current_user: User = Depends(AuthService.get_user_fro
     }
 
 # Portfolio Routes
-@api_router.get("/portfolio/{user_id}")
-async def get_portfolio(user_id: str):
+@api_router.get("/portfolio")
+async def get_portfolio(current_user: User = Depends(AuthService.get_user_from_token)):
     try:
-        portfolio = await db.portfolios.find_one({"user_id": user_id})
+        portfolio = await db.portfolios.find_one({"user_id": current_user.id})
         if not portfolio:
             # Create default portfolio
             portfolio = Portfolio(
-                user_id=user_id,
+                user_id=current_user.id,
                 total_balance=10000.0,
                 available_balance=10000.0,
                 invested_balance=0.0,
