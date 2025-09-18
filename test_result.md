@@ -101,3 +101,86 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Complete security overhaul for Neon Trader V7 - Implement JWT-based authentication system, secure API endpoints, move secrets to environment variables, and integrate frontend with secure backend authentication."
+
+backend:
+  - task: "JWT Authentication System Implementation"
+    implemented: false
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Starting implementation of JWT-based user registration and login endpoints with password hashing"
+
+  - task: "API Route Security Middleware"
+    implemented: false
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Need to add authentication middleware to protect all existing API routes"
+
+  - task: "Environment Variables Security"
+    implemented: false
+    working: "NA"
+    file: ".env"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "EMERGENT_LLM_KEY currently hardcoded in server.py, needs to be moved to .env"
+
+frontend:
+  - task: "JWT Token Integration"
+    implemented: false
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Replace localStorage authentication with JWT tokens from backend"
+
+  - task: "User ID Dynamic Integration"
+    implemented: false
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Remove hardcoded USER_ID and get from authenticated user context"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "JWT Authentication System Implementation"
+    - "API Route Security Middleware"
+    - "Environment Variables Security"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    - agent: "main"
+      message: "Starting security overhaul implementation. Will implement JWT backend authentication first, then integrate frontend. Critical vulnerabilities: hardcoded API key, unprotected routes, localStorage auth."
